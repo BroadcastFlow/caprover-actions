@@ -1,0 +1,20 @@
+name: 'CapRover Actions'
+description: 'Create, deploy, and clean up CapRover applications'
+inputs:
+  caprover_url:
+    description: 'CapRover URL'
+    required: true
+  caprover_password:
+    description: 'CapRover password'
+    required: true
+  app_name:
+    description: 'Application name'
+    required: true
+  image_tag:
+    description: 'Image tag for deploy operation'
+  operation:
+    description: 'Operation type: create, deploy, cleanup'
+    required: true
+runs:
+  using: 'node18'
+  main: 'dist/index.js'
