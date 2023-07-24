@@ -18,7 +18,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build and Push Docker Image
-      uses: path-to/caprover-action@main
+      uses: threemedia/caprover-actions@master
       with:
         caprover_url: 'your-caprover-url'
         caprover_password: ${{ secrets.CAPROVER_PASSWORD }}
