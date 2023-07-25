@@ -75,6 +75,10 @@ class CapRover {
             try {
                 const token = yield this.login(this.password);
                 core.info(`Creating application... ${token}`);
+                core.info(`Creating application with... ${JSON.stringify({
+                    appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
+                    hasPersistentData: true
+                })}`);
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/register`, {
                     method: 'POST',
                     headers: {
@@ -82,7 +86,10 @@ class CapRover {
                         'x-captain-auth': token,
                         'x-namespace': 'captain'
                     },
-                    body: JSON.stringify({ appName: appName, hasPersistentData: true })
+                    body: JSON.stringify({
+                        appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
+                        hasPersistentData: true
+                    })
                 });
                 const data = yield response.json();
                 core.setOutput('response', data);
@@ -94,6 +101,7 @@ class CapRover {
         });
     }
     deployApp(appName, imageTag, imageName) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.login(this.password);
@@ -102,6 +110,7 @@ class CapRover {
                     yield this.createApp(appName);
                 }
                 core.info(`Deploying application... with token: ${token}`);
+                core.info(`Deploying application... image ${`${imageName || appName}:${imageTag}?.toLowerCase()`}`);
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName}`, {
                     method: 'POST',
                     headers: {
@@ -111,7 +120,7 @@ class CapRover {
                     },
                     body: JSON.stringify({
                         schemaVersion: 2,
-                        imageName: `${imageName || appName}:${imageTag}`
+                        imageName: (_a = `${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
                     })
                 });
                 const data = yield response.json();

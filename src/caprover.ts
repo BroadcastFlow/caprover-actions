@@ -36,6 +36,12 @@ export class CapRover {
     try {
       const token = await this.login(this.password)
       core.info(`Creating application... ${token}`)
+      core.info(
+        `Creating application with... ${JSON.stringify({
+          appName: appName?.toLowerCase(),
+          hasPersistentData: true
+        })}`
+      )
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appDefinitions/register`,
         {
@@ -45,7 +51,10 @@ export class CapRover {
             'x-captain-auth': token,
             'x-namespace': 'captain'
           },
-          body: JSON.stringify({appName: appName, hasPersistentData: true})
+          body: JSON.stringify({
+            appName: appName?.toLowerCase(),
+            hasPersistentData: true
+          })
         }
       )
       const data = await response.json()
@@ -64,6 +73,11 @@ export class CapRover {
         await this.createApp(appName)
       }
       core.info(`Deploying application... with token: ${token}`)
+      core.info(
+        `Deploying application... image ${`${
+          imageName || appName
+        }:${imageTag}?.toLowerCase()`}`
+      )
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appData/${appName}`,
         {
@@ -75,7 +89,7 @@ export class CapRover {
           },
           body: JSON.stringify({
             schemaVersion: 2,
-            imageName: `${imageName || appName}:${imageTag}`
+            imageName: `${imageName || appName}:${imageTag}`?.toLowerCase()
           })
         }
       )
