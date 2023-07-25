@@ -9,9 +9,10 @@ interface CaproverApps {
 export class CapRover {
   private url: string
   private password: string
-  constructor(url: string, password: string) {
+  private registry?: string
+  constructor(url: string, password: string, registry?: string) {
     this.url = url
-    this.password = password
+    ;(this.password = password), (this.registry = registry)
   }
 
   private async login(password: string): Promise<string> {
@@ -76,7 +77,7 @@ export class CapRover {
       core.info(
         `Deploying application... image ${`${
           imageName || appName
-        }:${imageTag}?.toLowerCase()`}`
+        }:${imageTag}`}`
       )
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appData/${appName}`,
@@ -90,7 +91,9 @@ export class CapRover {
           body: JSON.stringify({
             captainDefinitionContent: {
               schemaVersion: 2,
-              imageName: `${imageName || appName}:${imageTag}`?.toLowerCase()
+              imageName: `${this.registry ? `${this.registry}/` : ''}${
+                imageName || appName
+              }:${imageTag}`?.toLowerCase()
             },
             gitHash: ''
           })

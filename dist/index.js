@@ -46,9 +46,9 @@ exports.CapRover = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const node_fetch_1 = __importDefault(__nccwpck_require__(4429));
 class CapRover {
-    constructor(url, password) {
+    constructor(url, password, registry) {
         this.url = url;
-        this.password = password;
+        (this.password = password), (this.registry = registry);
     }
     login(password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -110,7 +110,7 @@ class CapRover {
                     yield this.createApp(appName);
                 }
                 core.info(`Deploying application... with token: ${token}`);
-                core.info(`Deploying application... image ${`${imageName || appName}:${imageTag}?.toLowerCase()`}`);
+                core.info(`Deploying application... image ${`${imageName || appName}:${imageTag}`}`);
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName}`, {
                     method: 'POST',
                     headers: {
@@ -121,9 +121,9 @@ class CapRover {
                     body: JSON.stringify({
                         captainDefinitionContent: {
                             schemaVersion: 2,
-                            imageName: (_a = `${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
+                            imageName: (_a = `${this.registry ? `${this.registry}/` : ''}${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
                         },
-                        gitHash: ""
+                        gitHash: ''
                     })
                 });
                 const data = yield response.text();
@@ -262,11 +262,12 @@ function run() {
             const imageName = core.getInput('image_name', { required: false });
             const imageTag = core.getInput('image_tag', { required: true });
             const operation = core.getInput('operation', { required: true });
+            const registry = core.getInput('registry', { required: false });
             core.info(`Operation: ${operation}`);
             core.info(`Application name: ${appName}`);
             core.info(`Image name: ${imageName}`);
             core.info(`Image tag: ${imageTag}`);
-            const caprover = new caprover_1.CapRover(capRoverUrl, password);
+            const caprover = new caprover_1.CapRover(capRoverUrl, password, registry);
             switch (operation) {
                 case 'create':
                     core.info('Creating application...');
