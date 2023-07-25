@@ -8,11 +8,10 @@ interface CaproverApps {
 
 export class CapRover {
   private url: string
-  private tokenPromise: Promise<string>
-
+  private password: string
   constructor(url: string, password: string) {
     this.url = url
-    this.tokenPromise = this.login(password)
+    this.password = password
   }
 
   private async login(password: string): Promise<string> {
@@ -33,21 +32,9 @@ export class CapRover {
     }
   }
 
-  async getTokenOrError() {
-    core.info('Retrieving token...')
-    const timeout = new Promise<string>(
-      (_, reject) =>
-        setTimeout(
-          () => reject(new Error('Timeout waiting for token')),
-          2 * 60 * 1000
-        ) // 2 minutes
-    )
-    return await Promise.race([this.tokenPromise, timeout])
-  }
-
   async createApp(appName: string) {
     try {
-      const token = await this.getTokenOrError()
+      const token = await this.login(this.password)
       core.info('Creating application...')
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appDefinitions/register`,
@@ -71,7 +58,7 @@ export class CapRover {
 
   async deployApp(appName: string, imageTag: string, imageName?: string) {
     try {
-      const token = await this.getTokenOrError()
+      const token = await this.login(this.password)
       const app = await this.getApp(appName)
       if (!app) {
         await this.createApp(appName)
@@ -119,7 +106,7 @@ export class CapRover {
   async getList(): Promise<{appDefinitions: CaproverApps[]}> {
     try {
       core.info('Fetching list of applications...')
-      const token = await this.getTokenOrError()
+      const token = await this.login(this.password)
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appDefinitions`,
         {
@@ -143,7 +130,7 @@ export class CapRover {
 
   async deleteApp(appName: string) {
     try {
-      const token = await this.getTokenOrError()
+      const token = await this.login(this.password)
       const app = await this.getApp(appName)
       core.info('Deleting application...')
       const response = await fetch(

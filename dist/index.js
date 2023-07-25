@@ -48,7 +48,7 @@ const node_fetch_1 = __importDefault(__nccwpck_require__(4429));
 class CapRover {
     constructor(url, password) {
         this.url = url;
-        this.tokenPromise = this.login(password);
+        this.password = password;
     }
     login(password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -70,18 +70,10 @@ class CapRover {
             }
         });
     }
-    getTokenOrError() {
-        return __awaiter(this, void 0, void 0, function* () {
-            core.info('Retrieving token...');
-            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout waiting for token')), 2 * 60 * 1000) // 2 minutes
-            );
-            return yield Promise.race([this.tokenPromise, timeout]);
-        });
-    }
     createApp(appName) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const token = yield this.getTokenOrError();
+                const token = yield this.login(this.password);
                 core.info('Creating application...');
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/register`, {
                     method: 'POST',
@@ -104,7 +96,7 @@ class CapRover {
     deployApp(appName, imageTag, imageName) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const token = yield this.getTokenOrError();
+                const token = yield this.login(this.password);
                 const app = yield this.getApp(appName);
                 if (!app) {
                     yield this.createApp(appName);
@@ -154,7 +146,7 @@ class CapRover {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 core.info('Fetching list of applications...');
-                const token = yield this.getTokenOrError();
+                const token = yield this.login(this.password);
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions`, {
                     method: 'GET',
                     headers: {
@@ -178,7 +170,7 @@ class CapRover {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const token = yield this.getTokenOrError();
+                const token = yield this.login(this.password);
                 const app = yield this.getApp(appName);
                 core.info('Deleting application...');
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/delete`, {
