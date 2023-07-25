@@ -1,4 +1,4 @@
-import * as core from '@actions/core';
+import core from '@actions/core';
 import { CapRover } from './caprover';
 
 async function run() {
