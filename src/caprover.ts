@@ -17,7 +17,7 @@ export class CapRover {
 
   private async login(password: string): Promise<string> {
     try {
-      const response = await fetch(`http://${this.url}/api/v2/login`, {
+      const response = await fetch(`${this.url}/api/v2/login`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({password: password})
@@ -46,7 +46,7 @@ export class CapRover {
     try {
       const token = await this.getTokenOrError()
       const response = await fetch(
-        `http://${this.url}/api/v2/user/apps/appDefinitions/register`,
+        `${this.url}/api/v2/user/apps/appDefinitions/register`,
         {
           method: 'POST',
           headers: {
@@ -71,7 +71,7 @@ export class CapRover {
         await this.createApp(appName)
       }
       const response = await fetch(
-        `http://${this.url}/api/v2/user/apps/appData/${appName}`,
+        `${this.url}/api/v2/user/apps/appData/${appName}`,
         {
           method: 'POST',
           headers: {
@@ -109,7 +109,7 @@ export class CapRover {
     try {
       const token = await this.getTokenOrError()
       const response = await fetch(
-        `http://${this.url}/api/v2/user/apps/appDefinitions`,
+        `${this.url}/api/v2/user/apps/appDefinitions`,
         {
           method: 'GET',
           headers: {'Content-Type': 'application/json', 'x-captain-auth': token}
@@ -129,7 +129,7 @@ export class CapRover {
       const token = await this.getTokenOrError()
       const app = await this.getApp(appName)
       const response = await fetch(
-        `http://${this.url}/api/v2/user/apps/appDefinitions/delete`,
+        `${this.url}/api/v2/user/apps/appDefinitions/delete`,
         {
           method: 'POST',
           headers: {
