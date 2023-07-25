@@ -3,7 +3,15 @@ import fetch from 'node-fetch'
 
 interface CaproverApps {
   appName: string
-  volumes: {volumeName: string}[]
+  volumes: { volumeName: string }[],
+  instanceCount: number,
+  captainDefinitionRelativeFilePath: string,
+  notExposeAsWebApp: boolean,
+  forceSsl: boolean,
+  websocketSupport: boolean,
+  ports: any[],
+  description: string,
+  envVars: { key: string, value: unknown }[]
 }
 
 export class CapRover {
@@ -21,10 +29,10 @@ export class CapRover {
       core.info('Attempting to log in...')
       const response = await fetch(`${this.url}/api/v2/login`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json', 'x-namespace': 'captain'},
-        body: JSON.stringify({password: password})
+        headers: { 'Content-Type': 'application/json', 'x-namespace': 'captain' },
+        body: JSON.stringify({ password: password })
       })
-      const data = (await response.json()) as {data: {token: string}}
+      const data = (await response.json()) as { data: { token: string } }
       core.setOutput('response', data)
       core.info(`Login successful: toke - ${data.data.token} `)
       return data.data.token
@@ -67,6 +75,48 @@ export class CapRover {
     }
   }
 
+  async updateApp(appName: string, envVars: CaproverApps['envVars'] | null = null, additionalOptions: Record<string, unknown> = {}) {
+    try {
+      const token = await this.login(this.password)
+      core.info(`updating application... ${token}`)
+      core.info(
+        `updating application with... ${JSON.stringify({
+          appName: appName?.toLowerCase(),
+          hasPersistentData: true
+        })}`
+      )
+      const app = await this.getApp(appName)
+      const response = await fetch(
+        `${this.url}/api/v2/user/apps/appDefinitions/update`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-captain-auth': token,
+            'x-namespace': 'captain'
+          },
+          body: JSON.stringify({
+            appName: appName,
+            instanceCount: additionalOptions.instanceCount || app?.instanceCount,
+            captainDefinitionRelativeFilePath: additionalOptions.captainDefinitionRelativeFilePath || app?.captainDefinitionRelativeFilePath,
+            notExposeAsWebApp: additionalOptions.notExposeAsWebApp || app?.notExposeAsWebApp,
+            forceSsl: additionalOptions.forceSsl || app?.forceSsl,
+            websocketSupport: additionalOptions.websocketSupport || app?.websocketSupport,
+            volumes: additionalOptions.volumes || app?.volumes,
+            ports: additionalOptions.ports || app?.ports,
+            description: additionalOptions.description || app?.description,
+            envVars: envVars !== undefined ? envVars : app?.envVars
+          })
+        }
+      )
+      const data = await response.text()
+      core.setOutput('response', data)
+      core.info(`Application updated: ${data}`)
+    } catch (error: any) {
+      core.setFailed(`Failed to update application: ${error.message}`)
+    }
+  }
+
   async deployApp(appName: string, imageTag: string, imageName?: string) {
     try {
       const token = await this.login(this.password)
@@ -77,8 +127,7 @@ export class CapRover {
       core.info(`Deploying application... app name: ${appName}`)
       core.info(`Deploying application... with token: ${token}`)
       core.info(
-        `Deploying application... image ${`${
-          this.registry ? `${this.registry}/` : ''
+        `Deploying application... image ${`${this.registry ? `${this.registry}/` : ''
         }${imageName || appName}:${imageTag}`}`
       )
       const response = await fetch(
@@ -93,9 +142,8 @@ export class CapRover {
           body: JSON.stringify({
             captainDefinitionContent: JSON.stringify({
               schemaVersion: 2,
-              imageName: `${this.registry ? `${this.registry}/` : ''}${
-                imageName || appName
-              }:${imageTag}`?.toLowerCase()
+              imageName: `${this.registry ? `${this.registry}/` : ''}${imageName || appName
+                }:${imageTag}`?.toLowerCase()
             }),
             gitHash: ''
           })
@@ -125,7 +173,7 @@ export class CapRover {
     return null
   }
 
-  async getList(): Promise<{appDefinitions: CaproverApps[]}> {
+  async getList(): Promise<{ appDefinitions: CaproverApps[] }> {
     try {
       core.info('Fetching list of applications...')
       const token = await this.login(this.password)
@@ -141,7 +189,7 @@ export class CapRover {
         }
       )
       const data = (await response.json()) as {
-        data: {appDefinitions: CaproverApps[]}
+        data: { appDefinitions: CaproverApps[] }
       }
       core.setOutput('response', data)
       core.info('List of applications fetched')
@@ -149,7 +197,7 @@ export class CapRover {
     } catch (error: any) {
       core.setFailed(`Failed to fetch list: ${error.message}`)
     }
-    return {appDefinitions: []}
+    return { appDefinitions: [] }
   }
 
   async deleteApp(appName: string) {
