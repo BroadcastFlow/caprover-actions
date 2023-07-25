@@ -91,12 +91,12 @@ export class CapRover {
             'x-namespace': 'captain'
           },
           body: JSON.stringify({
-            captainDefinitionContent: {
+            captainDefinitionContent: JSON.stringify({
               schemaVersion: 2,
               imageName: `${this.registry ? `${this.registry}/` : ''}${
                 imageName || appName
               }:${imageTag}`?.toLowerCase()
-            },
+            }),
             gitHash: ''
           })
         }

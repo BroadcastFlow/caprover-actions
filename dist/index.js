@@ -121,10 +121,10 @@ class CapRover {
                         'x-namespace': 'captain'
                     },
                     body: JSON.stringify({
-                        captainDefinitionContent: {
+                        captainDefinitionContent: JSON.stringify({
                             schemaVersion: 2,
                             imageName: (_a = `${this.registry ? `${this.registry}/` : ''}${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
-                        },
+                        }),
                         gitHash: ''
                     })
                 });
