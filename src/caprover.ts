@@ -74,6 +74,7 @@ export class CapRover {
       if (!app) {
         await this.createApp(appName)
       }
+      core.info(`Deploying application... app name: ${appName}`)
       core.info(`Deploying application... with token: ${token}`)
       core.info(
         `Deploying application... image ${`${

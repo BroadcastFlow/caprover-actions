@@ -110,6 +110,7 @@ class CapRover {
                 if (!app) {
                     yield this.createApp(appName);
                 }
+                core.info(`Deploying application... app name: ${appName}`);
                 core.info(`Deploying application... with token: ${token}`);
                 core.info(`Deploying application... image ${`${this.registry ? `${this.registry}/` : ''}${imageName || appName}:${imageTag}`}`);
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName}`, {
