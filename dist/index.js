@@ -48,7 +48,8 @@ const node_fetch_1 = __importDefault(__nccwpck_require__(4429));
 class CapRover {
     constructor(url, password, registry) {
         this.url = url;
-        (this.password = password), (this.registry = registry);
+        this.password = password;
+        this.registry = (registry === null || registry === void 0 ? void 0 : registry.endsWith('/')) ? registry.slice(0, -1) : registry;
     }
     login(password) {
         return __awaiter(this, void 0, void 0, function* () {

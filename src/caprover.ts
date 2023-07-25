@@ -12,7 +12,8 @@ export class CapRover {
   private registry?: string
   constructor(url: string, password: string, registry?: string) {
     this.url = url
-    ;(this.password = password), (this.registry = registry)
+    this.password = password
+    this.registry = registry?.endsWith('/') ? registry.slice(0, -1) : registry
   }
 
   private async login(password: string): Promise<string> {
