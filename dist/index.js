@@ -94,7 +94,7 @@ class CapRover {
                 });
                 const data = yield response.json();
                 core.setOutput('response', data);
-                core.info('Application created');
+                core.info(`Application created: ${JSON.stringify(data)}`);
             }
             catch (error) {
                 core.setFailed(`Failed to create application: ${error.message}`);
@@ -124,7 +124,7 @@ class CapRover {
                 });
                 const data = yield response.json();
                 core.setOutput('response', data);
-                core.info('Application deployed');
+                core.info(`Application deployed: ${JSON.stringify(data)}`);
             }
             catch (error) {
                 core.setFailed(`Failed to deploy application: ${error.message}`);

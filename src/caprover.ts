@@ -63,7 +63,7 @@ export class CapRover {
       )
       const data = await response.json()
       core.setOutput('response', data)
-      core.info('Application created')
+      core.info(`Application created: ${JSON.stringify(data)}`)
     } catch (error: any) {
       core.setFailed(`Failed to create application: ${error.message}`)
     }
@@ -94,7 +94,7 @@ export class CapRover {
       )
       const data = await response.json()
       core.setOutput('response', data)
-      core.info('Application deployed')
+      core.info(`Application deployed: ${JSON.stringify(data)}`)
     } catch (error: any) {
       core.setFailed(`Failed to deploy application: ${error.message}`)
     }
