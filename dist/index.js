@@ -56,7 +56,7 @@ class CapRover {
                 core.info('Attempting to log in...');
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/login`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'x-namespace': 'captain' },
                     body: JSON.stringify({ password: password })
                 });
                 const data = (yield response.json());
@@ -87,7 +87,8 @@ class CapRover {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-captain-auth': token
+                        'x-captain-auth': token,
+                        'x-namespace': 'captain'
                     },
                     body: JSON.stringify({ appName: appName, hasPersistentData: true })
                 });
@@ -113,7 +114,8 @@ class CapRover {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-captain-auth': token
+                        'x-captain-auth': token,
+                        'x-namespace': 'captain'
                     },
                     body: JSON.stringify({
                         schemaVersion: 2,
@@ -154,7 +156,11 @@ class CapRover {
                 const token = yield this.getTokenOrError();
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions`, {
                     method: 'GET',
-                    headers: { 'Content-Type': 'application/json', 'x-captain-auth': token }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-captain-auth': token,
+                        'x-namespace': 'captain'
+                    }
                 });
                 const data = (yield response.json());
                 core.setOutput('response', data);
@@ -178,7 +184,8 @@ class CapRover {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-captain-auth': token
+                        'x-captain-auth': token,
+                        'x-namespace': 'captain'
                     },
                     body: JSON.stringify({
                         appName: appName,

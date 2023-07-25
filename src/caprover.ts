@@ -20,7 +20,7 @@ export class CapRover {
       core.info('Attempting to log in...')
       const response = await fetch(`${this.url}/api/v2/login`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'x-namespace': 'captain'},
         body: JSON.stringify({password: password})
       })
       const data = (await response.json()) as {token: string}
@@ -55,7 +55,8 @@ export class CapRover {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-captain-auth': token
+            'x-captain-auth': token,
+            'x-namespace': 'captain'
           },
           body: JSON.stringify({appName: appName, hasPersistentData: true})
         }
@@ -82,7 +83,8 @@ export class CapRover {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-captain-auth': token
+            'x-captain-auth': token,
+            'x-namespace': 'captain'
           },
           body: JSON.stringify({
             schemaVersion: 2,
@@ -122,7 +124,11 @@ export class CapRover {
         `${this.url}/api/v2/user/apps/appDefinitions`,
         {
           method: 'GET',
-          headers: {'Content-Type': 'application/json', 'x-captain-auth': token}
+          headers: {
+            'Content-Type': 'application/json',
+            'x-captain-auth': token,
+            'x-namespace': 'captain'
+          }
         }
       )
       const data = (await response.json()) as {appDefinitions: CaproverApps[]}
@@ -146,7 +152,8 @@ export class CapRover {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-captain-auth': token
+            'x-captain-auth': token,
+            'x-namespace': 'captain'
           },
           body: JSON.stringify({
             appName: appName,
