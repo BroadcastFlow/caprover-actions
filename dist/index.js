@@ -91,9 +91,9 @@ class CapRover {
                         hasPersistentData: true
                     })
                 });
-                const data = yield response.json();
+                const data = yield response.text();
                 core.setOutput('response', data);
-                core.info(`Application created: ${JSON.stringify(data)}`);
+                core.info(`Application created: ${data}`);
             }
             catch (error) {
                 core.setFailed(`Failed to create application: ${error.message}`);
@@ -123,9 +123,9 @@ class CapRover {
                         imageName: (_a = `${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
                     })
                 });
-                const data = yield response.json();
+                const data = yield response.text();
                 core.setOutput('response', data);
-                core.info(`Application deployed: ${JSON.stringify(data)}`);
+                core.info(`Application deployed: ${data}`);
             }
             catch (error) {
                 core.setFailed(`Failed to deploy application: ${error.message}`);
@@ -194,7 +194,7 @@ class CapRover {
                         volumes: (_a = app === null || app === void 0 ? void 0 : app.volumes) === null || _a === void 0 ? void 0 : _a.map(v => v.volumeName)
                     })
                 });
-                const data = yield response.json();
+                const data = yield response.text();
                 core.setOutput('response', data);
                 core.info('Application deleted');
             }

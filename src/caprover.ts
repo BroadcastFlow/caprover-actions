@@ -57,9 +57,9 @@ export class CapRover {
           })
         }
       )
-      const data = await response.json()
+      const data = await response.text()
       core.setOutput('response', data)
-      core.info(`Application created: ${JSON.stringify(data)}`)
+      core.info(`Application created: ${data}`)
     } catch (error: any) {
       core.setFailed(`Failed to create application: ${error.message}`)
     }
@@ -93,9 +93,9 @@ export class CapRover {
           })
         }
       )
-      const data = await response.json()
+      const data = await response.text()
       core.setOutput('response', data)
-      core.info(`Application deployed: ${JSON.stringify(data)}`)
+      core.info(`Application deployed: ${data}`)
     } catch (error: any) {
       core.setFailed(`Failed to deploy application: ${error.message}`)
     }
@@ -162,7 +162,7 @@ export class CapRover {
           })
         }
       )
-      const data = await response.json()
+      const data = await response.text()
       core.setOutput('response', data)
       core.info('Application deleted')
     } catch (error: any) {
