@@ -53,23 +53,26 @@ class CapRover {
     login(password) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const response = yield (0, node_fetch_1.default)(`http://${this.url}/api/v2/login`, {
+                core.info('Attempting to log in...');
+                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: password })
                 });
                 const data = (yield response.json());
                 core.setOutput('response', data);
+                core.info('Login successful');
                 return data.token;
             }
             catch (error) {
-                core.setFailed(`Failed to create application: ${error.message}`);
+                core.setFailed(`Failed to log in: ${error.message}`);
                 throw error;
             }
         });
     }
     getTokenOrError() {
         return __awaiter(this, void 0, void 0, function* () {
+            core.info('Retrieving token...');
             const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout waiting for token')), 2 * 60 * 1000) // 2 minutes
             );
             return yield Promise.race([this.tokenPromise, timeout]);
@@ -79,7 +82,8 @@ class CapRover {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.getTokenOrError();
-                const response = yield (0, node_fetch_1.default)(`http://${this.url}/api/v2/user/apps/appDefinitions/register`, {
+                core.info('Creating application...');
+                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -89,6 +93,7 @@ class CapRover {
                 });
                 const data = yield response.json();
                 core.setOutput('response', data);
+                core.info('Application created');
             }
             catch (error) {
                 core.setFailed(`Failed to create application: ${error.message}`);
@@ -99,7 +104,12 @@ class CapRover {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.getTokenOrError();
-                const response = yield (0, node_fetch_1.default)(`http://${this.url}/api/v2/user/apps/appData/${appName}`, {
+                const app = yield this.getApp(appName);
+                if (!app) {
+                    yield this.createApp(appName);
+                }
+                core.info('Deploying application...');
+                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -112,6 +122,7 @@ class CapRover {
                 });
                 const data = yield response.json();
                 core.setOutput('response', data);
+                core.info('Application deployed');
             }
             catch (error) {
                 core.setFailed(`Failed to deploy application: ${error.message}`);
@@ -121,11 +132,13 @@ class CapRover {
     getApp(appName) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                core.info('Fetching application...');
                 const list = yield this.getList();
                 const app = list.appDefinitions.find(app => app.appName === appName);
                 if (!app) {
                     throw new Error(`App ${appName} not found.`);
                 }
+                core.info('Application fetched');
                 return app;
             }
             catch (error) {
@@ -137,13 +150,15 @@ class CapRover {
     getList() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                core.info('Fetching list of applications...');
                 const token = yield this.getTokenOrError();
-                const response = yield (0, node_fetch_1.default)(`http://${this.url}/api/v2/user/apps/appDefinitions`, {
+                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json', 'x-captain-auth': token }
                 });
                 const data = (yield response.json());
                 core.setOutput('response', data);
+                core.info('List of applications fetched');
                 return data;
             }
             catch (error) {
@@ -158,7 +173,8 @@ class CapRover {
             try {
                 const token = yield this.getTokenOrError();
                 const app = yield this.getApp(appName);
-                const response = yield (0, node_fetch_1.default)(`http://${this.url}/api/v2/user/apps/appDefinitions/delete`, {
+                core.info('Deleting application...');
+                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/delete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -171,6 +187,7 @@ class CapRover {
                 });
                 const data = yield response.json();
                 core.setOutput('response', data);
+                core.info('Application deleted');
             }
             catch (error) {
                 core.setFailed(`Failed to delete application: ${error.message}`);
@@ -226,26 +243,35 @@ const caprover_1 = __nccwpck_require__(5832);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            core.info('Starting the CapRover GitHub action...');
             const capRoverUrl = core.getInput('caprover_url', { required: true });
             const password = core.getInput('caprover_password', { required: true });
             const appName = core.getInput('app_name', { required: true });
             const imageName = core.getInput('image_name', { required: false });
             const imageTag = core.getInput('image_tag', { required: true });
             const operation = core.getInput('operation', { required: true });
+            core.info(`Operation: ${operation}`);
+            core.info(`Application name: ${appName}`);
+            core.info(`Image name: ${imageName}`);
+            core.info(`Image tag: ${imageTag}`);
             const caprover = new caprover_1.CapRover(capRoverUrl, password);
             switch (operation) {
                 case 'create':
+                    core.info('Creating application...');
                     yield caprover.createApp(appName);
                     break;
                 case 'deploy':
+                    core.info('Deploying application...');
                     yield caprover.deployApp(appName, imageTag, imageName);
                     break;
                 case 'cleanup':
+                    core.info('Deleting application...');
                     yield caprover.deleteApp(appName);
                     break;
                 default:
                     core.setFailed(`Invalid operation: ${operation}`);
             }
+            core.info('Finished the CapRover GitHub action');
         }
         catch (error) {
             core.setFailed(error === null || error === void 0 ? void 0 : error.message);

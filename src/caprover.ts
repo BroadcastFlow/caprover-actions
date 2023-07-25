@@ -17,6 +17,7 @@ export class CapRover {
 
   private async login(password: string): Promise<string> {
     try {
+      core.info('Attempting to log in...')
       const response = await fetch(`${this.url}/api/v2/login`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -24,14 +25,16 @@ export class CapRover {
       })
       const data = (await response.json()) as {token: string}
       core.setOutput('response', data)
+      core.info('Login successful')
       return data.token
     } catch (error: any) {
-      core.setFailed(`Failed to create application: ${error.message}`)
+      core.setFailed(`Failed to log in: ${error.message}`)
       throw error
     }
   }
 
   async getTokenOrError() {
+    core.info('Retrieving token...')
     const timeout = new Promise<string>(
       (_, reject) =>
         setTimeout(
@@ -45,6 +48,7 @@ export class CapRover {
   async createApp(appName: string) {
     try {
       const token = await this.getTokenOrError()
+      core.info('Creating application...')
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appDefinitions/register`,
         {
@@ -58,6 +62,7 @@ export class CapRover {
       )
       const data = await response.json()
       core.setOutput('response', data)
+      core.info('Application created')
     } catch (error: any) {
       core.setFailed(`Failed to create application: ${error.message}`)
     }
@@ -66,10 +71,11 @@ export class CapRover {
   async deployApp(appName: string, imageTag: string, imageName?: string) {
     try {
       const token = await this.getTokenOrError()
-      const app = await this.getApp(appName);
+      const app = await this.getApp(appName)
       if (!app) {
         await this.createApp(appName)
       }
+      core.info('Deploying application...')
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appData/${appName}`,
         {
@@ -86,6 +92,7 @@ export class CapRover {
       )
       const data = await response.json()
       core.setOutput('response', data)
+      core.info('Application deployed')
     } catch (error: any) {
       core.setFailed(`Failed to deploy application: ${error.message}`)
     }
@@ -93,11 +100,13 @@ export class CapRover {
 
   async getApp(appName: string) {
     try {
+      core.info('Fetching application...')
       const list = await this.getList()
       const app = list.appDefinitions.find(app => app.appName === appName)
       if (!app) {
         throw new Error(`App ${appName} not found.`)
       }
+      core.info('Application fetched')
       return app
     } catch (error: any) {
       core.setFailed(`Failed to fetch app: ${error.message}`)
@@ -107,6 +116,7 @@ export class CapRover {
 
   async getList(): Promise<{appDefinitions: CaproverApps[]}> {
     try {
+      core.info('Fetching list of applications...')
       const token = await this.getTokenOrError()
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appDefinitions`,
@@ -117,6 +127,7 @@ export class CapRover {
       )
       const data = (await response.json()) as {appDefinitions: CaproverApps[]}
       core.setOutput('response', data)
+      core.info('List of applications fetched')
       return data
     } catch (error: any) {
       core.setFailed(`Failed to fetch list: ${error.message}`)
@@ -128,6 +139,7 @@ export class CapRover {
     try {
       const token = await this.getTokenOrError()
       const app = await this.getApp(appName)
+      core.info('Deleting application...')
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appDefinitions/delete`,
         {
@@ -144,6 +156,7 @@ export class CapRover {
       )
       const data = await response.json()
       core.setOutput('response', data)
+      core.info('Application deleted')
     } catch (error: any) {
       core.setFailed(`Failed to delete application: ${error.message}`)
     }
