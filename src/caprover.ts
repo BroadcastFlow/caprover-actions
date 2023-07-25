@@ -76,8 +76,8 @@ export class CapRover {
       core.info(`Deploying application... with token: ${token}`)
       core.info(
         `Deploying application... image ${`${
-          imageName || appName
-        }:${imageTag}`}`
+          this.registry ? `${this.registry}/` : ''
+        }${imageName || appName}:${imageTag}`}`
       )
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appData/${appName}`,
