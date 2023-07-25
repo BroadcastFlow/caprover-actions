@@ -20,6 +20,12 @@ inputs:
   docker_registry:
     description: 'docker registry'
     required: false
+  useEnv:
+    description: 'boolean to use env when updating app'
+    required: false
+  additionalUpdateSettings:
+    description: 'Caprover app settings excluding name and envs as a JSON string'
+    required: false
 runs:
   using: 'node16'
   main: 'dist/index.js'

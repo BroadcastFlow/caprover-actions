@@ -12,6 +12,10 @@ async function run() {
     const imageTag = core.getInput('image_tag', {required: true})
     const operation = core.getInput('operation', {required: true})
     const registry = core.getInput('docker_registry', {required: false})
+    const useEnv = core.getInput('useEnv', {required: false})
+    const additionalUpdateSettings = core.getInput('additionalUpdateSettings', {
+      required: false
+    })
 
     core.info(`Operation: ${operation}`)
     core.info(`Application name: ${appName}`)
@@ -28,6 +32,16 @@ async function run() {
       case 'deploy':
         core.info('Deploying application...')
         await caprover.deployApp(appName, imageTag, imageName)
+        break
+      case 'update':
+        core.info('updating application...')
+        const envToUse = useEnv
+          ? Object.entries(process.env).map(([key, value]) => ({key, value}))
+          : undefined
+        const settings = additionalUpdateSettings
+          ? JSON.parse(additionalUpdateSettings)
+          : {}
+        await caprover.updateApp(appName, envToUse, settings)
         break
       case 'cleanup':
         core.info('Deleting application...')

@@ -101,6 +101,45 @@ class CapRover {
             }
         });
     }
+    updateApp(appName, envVars = null, additionalOptions = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const token = yield this.login(this.password);
+                core.info(`updating application... ${token}`);
+                core.info(`updating application with... ${JSON.stringify({
+                    appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
+                    hasPersistentData: true
+                })}`);
+                const app = yield this.getApp(appName);
+                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-captain-auth': token,
+                        'x-namespace': 'captain'
+                    },
+                    body: JSON.stringify({
+                        appName: appName,
+                        instanceCount: additionalOptions.instanceCount || (app === null || app === void 0 ? void 0 : app.instanceCount),
+                        captainDefinitionRelativeFilePath: additionalOptions.captainDefinitionRelativeFilePath || (app === null || app === void 0 ? void 0 : app.captainDefinitionRelativeFilePath),
+                        notExposeAsWebApp: additionalOptions.notExposeAsWebApp || (app === null || app === void 0 ? void 0 : app.notExposeAsWebApp),
+                        forceSsl: additionalOptions.forceSsl || (app === null || app === void 0 ? void 0 : app.forceSsl),
+                        websocketSupport: additionalOptions.websocketSupport || (app === null || app === void 0 ? void 0 : app.websocketSupport),
+                        volumes: additionalOptions.volumes || (app === null || app === void 0 ? void 0 : app.volumes),
+                        ports: additionalOptions.ports || (app === null || app === void 0 ? void 0 : app.ports),
+                        description: additionalOptions.description || (app === null || app === void 0 ? void 0 : app.description),
+                        envVars: envVars !== undefined ? envVars : app === null || app === void 0 ? void 0 : app.envVars
+                    })
+                });
+                const data = yield response.text();
+                core.setOutput('response', data);
+                core.info(`Application updated: ${data}`);
+            }
+            catch (error) {
+                core.setFailed(`Failed to update application: ${error.message}`);
+            }
+        });
+    }
     deployApp(appName, imageTag, imageName) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
@@ -265,6 +304,8 @@ function run() {
             const imageTag = core.getInput('image_tag', { required: true });
             const operation = core.getInput('operation', { required: true });
             const registry = core.getInput('docker_registry', { required: false });
+            const useEnv = core.getInput('useEnv', { required: false });
+            const additionalUpdateSettings = core.getInput('additionalUpdateSettings', { required: false });
             core.info(`Operation: ${operation}`);
             core.info(`Application name: ${appName}`);
             core.info(`Image name: ${imageName}`);
@@ -278,6 +319,12 @@ function run() {
                 case 'deploy':
                     core.info('Deploying application...');
                     yield caprover.deployApp(appName, imageTag, imageName);
+                    break;
+                case 'update':
+                    core.info('updating application...');
+                    const envToUse = useEnv ? Object.entries(process.env).map(([key, value]) => ({ key, value })) : undefined;
+                    const settings = additionalUpdateSettings ? JSON.parse(additionalUpdateSettings) : {};
+                    yield caprover.updateApp(appName, envToUse, settings);
                     break;
                 case 'cleanup':
                     core.info('Deleting application...');
