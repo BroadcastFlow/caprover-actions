@@ -24,7 +24,7 @@ export class CapRover {
       })
       const data = (await response.json()) as {token: string}
       core.setOutput('response', data)
-      core.info('Login successful')
+      core.info(`Login successful: toke - ${data.token} `)
       return data.token
     } catch (error: any) {
       core.setFailed(`Failed to log in: ${error.message}`)

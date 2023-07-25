@@ -61,7 +61,7 @@ class CapRover {
                 });
                 const data = (yield response.json());
                 core.setOutput('response', data);
-                core.info('Login successful');
+                core.info(`Login successful: toke - ${data.token} `);
                 return data.token;
             }
             catch (error) {
