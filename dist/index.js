@@ -61,8 +61,8 @@ class CapRover {
                 });
                 const data = (yield response.json());
                 core.setOutput('response', data);
-                core.info(`Login successful: toke - ${data.token} `);
-                return data.token;
+                core.info(`Login successful: toke - ${data.data.token} `);
+                return data.data.token;
             }
             catch (error) {
                 core.setFailed(`Failed to log in: ${error.message}`);

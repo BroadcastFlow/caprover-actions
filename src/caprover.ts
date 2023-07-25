@@ -22,10 +22,10 @@ export class CapRover {
         headers: {'Content-Type': 'application/json', 'x-namespace': 'captain'},
         body: JSON.stringify({password: password})
       })
-      const data = (await response.json()) as {token: string}
+      const data = (await response.json()) as {data: {token: string}}
       core.setOutput('response', data)
-      core.info(`Login successful: toke - ${data.token} `)
-      return data.token
+      core.info(`Login successful: toke - ${data.data.token} `)
+      return data.data.token
     } catch (error: any) {
       core.setFailed(`Failed to log in: ${error.message}`)
       throw error
