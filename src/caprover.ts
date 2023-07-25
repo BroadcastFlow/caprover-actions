@@ -35,7 +35,7 @@ export class CapRover {
   async createApp(appName: string) {
     try {
       const token = await this.login(this.password)
-      core.info('Creating application...')
+      core.info(`Creating application... ${token}`)
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appDefinitions/register`,
         {
@@ -63,7 +63,7 @@ export class CapRover {
       if (!app) {
         await this.createApp(appName)
       }
-      core.info('Deploying application...')
+      core.info(`Deploying application... with token: ${token}`)
       const response = await fetch(
         `${this.url}/api/v2/user/apps/appData/${appName}`,
         {

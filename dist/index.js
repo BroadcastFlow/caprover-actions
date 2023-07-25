@@ -74,7 +74,7 @@ class CapRover {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.login(this.password);
-                core.info('Creating application...');
+                core.info(`Creating application... ${token}`);
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/register`, {
                     method: 'POST',
                     headers: {
@@ -101,7 +101,7 @@ class CapRover {
                 if (!app) {
                     yield this.createApp(appName);
                 }
-                core.info('Deploying application...');
+                core.info(`Deploying application... with token: ${token}`);
                 const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName}`, {
                     method: 'POST',
                     headers: {
