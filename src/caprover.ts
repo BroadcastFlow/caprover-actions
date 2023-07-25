@@ -138,10 +138,12 @@ export class CapRover {
           }
         }
       )
-      const data = (await response.json()) as {appDefinitions: CaproverApps[]}
+      const data = (await response.json()) as {
+        data: {appDefinitions: CaproverApps[]}
+      }
       core.setOutput('response', data)
       core.info('List of applications fetched')
-      return data
+      return data.data
     } catch (error: any) {
       core.setFailed(`Failed to fetch list: ${error.message}`)
     }

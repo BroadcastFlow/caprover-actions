@@ -170,7 +170,7 @@ class CapRover {
                 const data = (yield response.json());
                 core.setOutput('response', data);
                 core.info('List of applications fetched');
-                return data;
+                return data.data;
             }
             catch (error) {
                 core.setFailed(`Failed to fetch list: ${error.message}`);
