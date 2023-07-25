@@ -119,8 +119,11 @@ class CapRover {
                         'x-namespace': 'captain'
                     },
                     body: JSON.stringify({
-                        schemaVersion: 2,
-                        imageName: (_a = `${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
+                        captainDefinitionContent: {
+                            schemaVersion: 2,
+                            imageName: (_a = `${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
+                        },
+                        gitHash: ""
                     })
                 });
                 const data = yield response.text();

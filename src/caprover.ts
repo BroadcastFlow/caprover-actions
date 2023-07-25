@@ -88,8 +88,11 @@ export class CapRover {
             'x-namespace': 'captain'
           },
           body: JSON.stringify({
-            schemaVersion: 2,
-            imageName: `${imageName || appName}:${imageTag}`?.toLowerCase()
+            captainDefinitionContent: {
+              schemaVersion: 2,
+              imageName: `${imageName || appName}:${imageTag}`?.toLowerCase()
+            },
+            gitHash: ''
           })
         }
       )
