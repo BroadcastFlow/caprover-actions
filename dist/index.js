@@ -132,11 +132,12 @@ class CapRover {
         });
     }
     getApp(appName) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 core.info('Fetching application...');
                 const list = yield this.getList();
-                const app = list.appDefinitions.find(app => app.appName === appName);
+                const app = (_a = list.appDefinitions) === null || _a === void 0 ? void 0 : _a.find(app => app.appName === appName);
                 if (!app) {
                     throw new Error(`App ${appName} not found.`);
                 }

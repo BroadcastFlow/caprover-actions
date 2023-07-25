@@ -104,7 +104,7 @@ export class CapRover {
     try {
       core.info('Fetching application...')
       const list = await this.getList()
-      const app = list.appDefinitions.find(app => app.appName === appName)
+      const app = list.appDefinitions?.find(app => app.appName === appName)
       if (!app) {
         throw new Error(`App ${appName} not found.`)
       }
