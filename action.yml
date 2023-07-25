@@ -17,6 +17,9 @@ inputs:
   operation:
     description: 'Operation type: create, deploy, cleanup'
     required: true
+  docker_registry:
+    description: 'docker registry'
+    required: false
 runs:
   using: 'node16'
   main: 'dist/index.js'

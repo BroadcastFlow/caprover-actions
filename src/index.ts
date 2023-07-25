@@ -11,7 +11,7 @@ async function run() {
     const imageName = core.getInput('image_name', {required: false})
     const imageTag = core.getInput('image_tag', {required: true})
     const operation = core.getInput('operation', {required: true})
-    const registry = core.getInput('registry', {required: false})
+    const registry = core.getInput('docker_registry', {required: false})
 
     core.info(`Operation: ${operation}`)
     core.info(`Application name: ${appName}`)
