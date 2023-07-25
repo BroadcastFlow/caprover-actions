@@ -66,6 +66,10 @@ export class CapRover {
   async deployApp(appName: string, imageTag: string, imageName?: string) {
     try {
       const token = await this.getTokenOrError()
+      const app = await this.getApp(appName);
+      if (!app) {
+        await this.createApp(appName)
+      }
       const response = await fetch(
         `http://${this.url}/api/v2/user/apps/appData/${appName}`,
         {
