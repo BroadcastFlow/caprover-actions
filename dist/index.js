@@ -139,7 +139,7 @@ class CapRover {
                 const list = yield this.getList();
                 const app = (_a = list.appDefinitions) === null || _a === void 0 ? void 0 : _a.find(app => app.appName === appName);
                 if (!app) {
-                    throw new Error(`App ${appName} not found.`);
+                    return null;
                 }
                 core.info('Application fetched');
                 return app;
