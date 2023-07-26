@@ -164,47 +164,53 @@ export class CapRover {
       const data = (await response.json()) as Record<string, undefined>
 
       if (data.status === 100 || data.status === 200) {
+        core.setOutput('response', data)
+        core.info(`Application deployed: ${data}`)
+        core.debug(`Deployment context: ${gitHub.context.eventName}`)
         if (gitHub.context.eventName === 'pull_request') {
-          const octokit = gitHub.getOctokit(process.env.GITHUB_TOKEN || '')
-          const date = new Date()
+          core.debug(`AUthing with Octokit`)
+          try {
+            const octokit = gitHub.getOctokit(process.env.GITHUB_TOKEN || '')
+            const date = new Date()
 
-          function join(date: Date, options: any[], separator: string) {
-            function format(option: Intl.DateTimeFormatOptions) {
-              const formatter = new Intl.DateTimeFormat('en', option)
-              return formatter.format(date)
+            function join(date: Date, options: any[], separator: string) {
+              function format(option: Intl.DateTimeFormatOptions) {
+                const formatter = new Intl.DateTimeFormat('en', option)
+                return formatter.format(date)
+              }
+              return options?.map(format).join(separator)
             }
-            return options?.map(format).join(separator)
+
+            const options = [
+              {day: 'numeric'},
+              {month: 'short'},
+              {year: 'numeric'},
+              {timeStyle: 'medium'}
+            ]
+            core.debug('Leaving comment on PR')
+            await octokit.rest.issues.createComment({
+              issue_number: gitHub.context.issue.number,
+              repo: gitHub.context.issue.repo,
+              owner: gitHub.context.issue.owner,
+              body: `
+              **The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
+  
+              | Name | Preview | Updated (UTC) |
+              | :--- | :------ | :------ |
+              | **${appName}** | [Visit Preview](${this.url.replace(
+                'captain',
+                appName
+              )}) | ${join(new Date(), options, ' ')} |
+              `
+            })
+            core.debug('Comment left on PR')
+          } catch (error: any) {
+            core.debug(error?.message)
           }
-
-          const options = [
-            {day: 'numeric'},
-            {month: 'short'},
-            {year: 'numeric'},
-            {timeStyle: 'medium'}
-          ]
-
-          octokit.rest.issues.createComment({
-            issue_number: gitHub.context.issue.number,
-            repo: gitHub.context.issue.repo,
-            owner: gitHub.context.issue.owner,
-            body: `
-            **The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
-
-            | Name | Preview | Updated (UTC) |
-            | :--- | :------ | :------ |
-            | **${appName}** | [Visit Preview](${this.url.replace(
-              'captain',
-              appName
-            )}) | ${join(new Date(), options, ' ')} |
-            `
-          })
         }
       } else {
         core.setFailed(`Failed to deploy application: ${data.description}`)
       }
-
-      core.setOutput('response', data)
-      core.info(`Application deployed: ${data}`)
     } catch (error: any) {
       core.setFailed(`Failed to deploy application: ${error.message}`)
     }
