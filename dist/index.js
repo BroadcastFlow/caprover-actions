@@ -54,11 +54,12 @@ function join(date, options, separator) {
     return options === null || options === void 0 ? void 0 : options.map(format).join(separator);
 }
 class CapRover {
-    constructor(url, password, registry, githubToken) {
+    constructor(url, password, registry, githubToken, useEnv) {
         this.url = url;
         this.password = password;
         this.registry = (registry === null || registry === void 0 ? void 0 : registry.endsWith('/')) ? registry.slice(0, -1) : registry;
         this.githubToken = githubToken;
+        this.useEnv = useEnv;
     }
     login(password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -151,7 +152,7 @@ class CapRover {
         });
     }
     deployApp(appName, imageTag, imageName) {
-        var _a;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.login(this.password);
@@ -179,6 +180,10 @@ class CapRover {
                 });
                 const data = (yield response.json());
                 if (data.status === 100 || data.status === 200) {
+                    const envToUse = this.useEnv ?
+                        ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.map(([key, value]) => ({ key, value }))) ||
+                            [] : [];
+                    yield this.updateApp(appName, envToUse);
                     core.setOutput('response', data);
                     core.info(`Application deployed: ${data}`);
                     core.debug(`Deployment context: ${gitHub.context.eventName}`);
@@ -403,7 +408,7 @@ function run() {
             core.info(`Application name: ${appName}`);
             core.info(`Image name: ${imageName}`);
             core.info(`Image tag: ${imageTag}`);
-            const caprover = new caprover_1.CapRover(capRoverUrl, password, registry, github_token);
+            const caprover = new caprover_1.CapRover(capRoverUrl, password, registry, github_token, Boolean(useEnv));
             switch (operation) {
                 case 'create':
                     core.info('Creating application...');
@@ -415,7 +420,7 @@ function run() {
                     break;
                 case 'update':
                     core.info('updating application...');
-                    const envToUse = useEnv
+                    const envToUse = Boolean(useEnv)
                         ? Object.entries(process.env).map(([key, value]) => ({ key, value }))
                         : undefined;
                     const settings = additionalUpdateSettings

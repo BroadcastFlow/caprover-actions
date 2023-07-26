@@ -28,16 +28,19 @@ export class CapRover {
   private password: string
   private registry?: string
   private githubToken?: string
+  private useEnv?: boolean
   constructor(
     url: string,
     password: string,
     registry?: string,
-    githubToken?: string
+    githubToken?: string,
+    useEnv?: boolean
   ) {
     this.url = url
     this.password = password
     this.registry = registry?.endsWith('/') ? registry.slice(0, -1) : registry
     this.githubToken = githubToken
+    this.useEnv = useEnv
   }
 
   private async login(password: string): Promise<string> {
@@ -179,6 +182,13 @@ export class CapRover {
       const data = (await response.json()) as Record<string, undefined>
 
       if (data.status === 100 || data.status === 200) {
+        const envToUse = this.useEnv
+          ? Object.entries(process.env)?.map(([key, value]) => ({
+              key,
+              value
+            })) || []
+          : []
+        await this.updateApp(appName, envToUse)
         core.setOutput('response', data)
         core.info(`Application deployed: ${data}`)
         core.debug(`Deployment context: ${gitHub.context.eventName}`)

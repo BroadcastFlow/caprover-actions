@@ -23,7 +23,13 @@ async function run() {
     core.info(`Image name: ${imageName}`)
     core.info(`Image tag: ${imageTag}`)
 
-    const caprover = new CapRover(capRoverUrl, password, registry, github_token)
+    const caprover = new CapRover(
+      capRoverUrl,
+      password,
+      registry,
+      github_token,
+      Boolean(useEnv)
+    )
 
     switch (operation) {
       case 'create':
@@ -36,7 +42,7 @@ async function run() {
         break
       case 'update':
         core.info('updating application...')
-        const envToUse = useEnv
+        const envToUse = Boolean(useEnv)
           ? Object.entries(process.env).map(([key, value]) => ({key, value}))
           : undefined
         const settings = additionalUpdateSettings
