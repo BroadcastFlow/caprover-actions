@@ -19,10 +19,17 @@ export class CapRover {
   private url: string
   private password: string
   private registry?: string
-  constructor(url: string, password: string, registry?: string) {
+  private githubToken?: string
+  constructor(
+    url: string,
+    password: string,
+    registry?: string,
+    githubToken?: string
+  ) {
     this.url = url
     this.password = password
     this.registry = registry?.endsWith('/') ? registry.slice(0, -1) : registry
+    this.githubToken = githubToken
   }
 
   private async login(password: string): Promise<string> {
@@ -168,7 +175,16 @@ export class CapRover {
         core.info(`Application deployed: ${data}`)
         core.debug(`Deployment context: ${gitHub.context.eventName}`)
         if (gitHub.context.eventName === 'pull_request') {
-          core.debug(`AUthing with Octokit`)
+          if (typeof this.githubToken != 'string') {
+            core.info('Github token is invalid')
+            return
+          }
+
+          if (!this.githubToken) {
+            core.info('GITHUB_TOKEN is required to update PR')
+            return
+          }
+          core.debug(`Authing with Octokit`)
           try {
             const octokit = gitHub.getOctokit(process.env.GITHUB_TOKEN || '')
             const date = new Date()

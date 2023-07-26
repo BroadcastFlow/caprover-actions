@@ -47,10 +47,11 @@ const core = __importStar(__nccwpck_require__(2186));
 const gitHub = __importStar(__nccwpck_require__(5438));
 const node_fetch_1 = __importDefault(__nccwpck_require__(4429));
 class CapRover {
-    constructor(url, password, registry) {
+    constructor(url, password, registry, githubToken) {
         this.url = url;
         this.password = password;
         this.registry = (registry === null || registry === void 0 ? void 0 : registry.endsWith('/')) ? registry.slice(0, -1) : registry;
+        this.githubToken = githubToken;
     }
     login(password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -175,7 +176,15 @@ class CapRover {
                     core.info(`Application deployed: ${data}`);
                     core.debug(`Deployment context: ${gitHub.context.eventName}`);
                     if (gitHub.context.eventName === 'pull_request') {
-                        core.debug(`AUthing with Octokit`);
+                        if (typeof this.githubToken != 'string') {
+                            core.info('Github token is invalid');
+                            return;
+                        }
+                        if (!this.githubToken) {
+                            core.info('GITHUB_TOKEN is required to update PR');
+                            return;
+                        }
+                        core.debug(`Authing with Octokit`);
                         try {
                             const octokit = gitHub.getOctokit(process.env.GITHUB_TOKEN || '');
                             const date = new Date();
@@ -353,11 +362,12 @@ function run() {
             const additionalUpdateSettings = core.getInput('additionalUpdateSettings', {
                 required: false
             });
+            const github_token = (process.env["GITHUB_TOKEN"] || "").trim();
             core.info(`Operation: ${operation}`);
             core.info(`Application name: ${appName}`);
             core.info(`Image name: ${imageName}`);
             core.info(`Image tag: ${imageTag}`);
-            const caprover = new caprover_1.CapRover(capRoverUrl, password, registry);
+            const caprover = new caprover_1.CapRover(capRoverUrl, password, registry, github_token);
             switch (operation) {
                 case 'create':
                     core.info('Creating application...');

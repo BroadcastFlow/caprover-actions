@@ -16,13 +16,14 @@ async function run() {
     const additionalUpdateSettings = core.getInput('additionalUpdateSettings', {
       required: false
     })
+    const github_token = (process.env['GITHUB_TOKEN'] || '').trim()
 
     core.info(`Operation: ${operation}`)
     core.info(`Application name: ${appName}`)
     core.info(`Image name: ${imageName}`)
     core.info(`Image tag: ${imageTag}`)
 
-    const caprover = new CapRover(capRoverUrl, password, registry)
+    const caprover = new CapRover(capRoverUrl, password, registry, github_token)
 
     switch (operation) {
       case 'create':
