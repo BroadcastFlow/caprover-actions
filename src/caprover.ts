@@ -195,20 +195,25 @@ export class CapRover {
           core.debug(`Authing with Octokit`)
           try {
             const octokit = gitHub.getOctokit(process.env.GITHUB_TOKEN || '')
-            
+
             // Fetch the PR's comments
             const commentsResponse = await octokit.rest.issues.listComments({
               issue_number: gitHub.context.issue.number,
               repo: gitHub.context.repo.repo,
-              owner: gitHub.context.repo.owner,
-            });
-            const comments = commentsResponse.data;
+              owner: gitHub.context.repo.owner
+            })
+            const comments = commentsResponse.data
 
-            const base64Context = Buffer.from(JSON.stringify(gitHub.context), 'utf8').toString('base64')
-            
+            const base64Context = Buffer.from(
+              JSON.stringify(gitHub.context),
+              'utf8'
+            ).toString('base64')
+
             // Find the comment that we want to update
-            const botComment = comments.find(comment => comment.body?.includes(base64Context));
-            
+            const botComment = comments.find(comment =>
+              comment.body?.includes(base64Context)
+            )
+
             // Format the current date
             const options = [
               {day: 'numeric'},
@@ -216,29 +221,41 @@ export class CapRover {
               {year: 'numeric'},
               {timeStyle: 'medium'}
             ]
-            const formattedDate = join(new Date(), options, ' ');
-            
+            const formattedDate = join(new Date(), options, ' ')
+
             const baseComment = `
             [tmtv-caprover]: ${base64Context}
             **The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
             
             | Name | Preview | Updated (UTC) |
             | :--- | :------ | :------ |
-              `;
+              `
             // New comment body
-            let newCommentBody = botComment?.body ||  baseComment;
-            
+            let newCommentBody = botComment?.body || baseComment
+
             // Check if app name exists in the table
             if (newCommentBody.includes(`| **${appName}** |`)) {
               // If it does, replace the corresponding row
-              const regex = new RegExp(`\\| \\*\\*${appName}\\*\\* \\| \\[Visit Preview\\]\\([^\\)]+\\) \\| .+ \\|`, 'g');
-              newCommentBody = newCommentBody.replace(regex, `| **${appName}** | [Visit Preview](${this.url.replace('captain', appName)}) | ${formattedDate} |`);
+              const regex = new RegExp(
+                `\\| \\*\\*${appName}\\*\\* \\| \\[Visit Preview\\]\\([^\\)]+\\) \\| .+ \\|`,
+                'g'
+              )
+              newCommentBody = newCommentBody.replace(
+                regex,
+                `| **${appName}** | [Visit Preview](${this.url.replace(
+                  'captain',
+                  appName
+                )}) | ${formattedDate} |`
+              )
             } else {
               // If it doesn't, add a new row to the table
               newCommentBody += `
-          | **${appName}** | [Visit Preview](${this.url.replace('captain', appName)}) | ${formattedDate} |`;
+          | **${appName}** | [Visit Preview](${this.url.replace(
+                'captain',
+                appName
+              )}) | ${formattedDate} |`
             }
-            
+
             // If the bot's comment already exists, update it
             if (botComment) {
               await octokit.rest.issues.updateComment({
@@ -246,7 +263,7 @@ export class CapRover {
                 owner: gitHub.context.repo.owner,
                 repo: gitHub.context.repo.repo,
                 body: newCommentBody
-              });
+              })
             } else {
               // Otherwise, create a new comment
               await octokit.rest.issues.createComment({
@@ -254,9 +271,9 @@ export class CapRover {
                 repo: gitHub.context.repo.repo,
                 owner: gitHub.context.repo.owner,
                 body: newCommentBody
-              });
+              })
             }
-            
+
             core.debug('Comment left on PR')
           } catch (error: any) {
             core.debug(error?.message)

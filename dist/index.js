@@ -46,6 +46,13 @@ exports.CapRover = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const gitHub = __importStar(__nccwpck_require__(5438));
 const node_fetch_1 = __importDefault(__nccwpck_require__(4429));
+function join(date, options, separator) {
+    function format(option) {
+        const formatter = new Intl.DateTimeFormat('en', option);
+        return formatter.format(date);
+    }
+    return options === null || options === void 0 ? void 0 : options.map(format).join(separator);
+}
 class CapRover {
     constructor(url, password, registry, githubToken) {
         this.url = url;
@@ -187,33 +194,62 @@ class CapRover {
                         core.debug(`Authing with Octokit`);
                         try {
                             const octokit = gitHub.getOctokit(process.env.GITHUB_TOKEN || '');
-                            const date = new Date();
-                            function join(date, options, separator) {
-                                function format(option) {
-                                    const formatter = new Intl.DateTimeFormat('en', option);
-                                    return formatter.format(date);
-                                }
-                                return options === null || options === void 0 ? void 0 : options.map(format).join(separator);
-                            }
+                            // Fetch the PR's comments
+                            const commentsResponse = yield octokit.rest.issues.listComments({
+                                issue_number: gitHub.context.issue.number,
+                                repo: gitHub.context.repo.repo,
+                                owner: gitHub.context.repo.owner
+                            });
+                            const comments = commentsResponse.data;
+                            const base64Context = Buffer.from(JSON.stringify(gitHub.context), 'utf8').toString('base64');
+                            // Find the comment that we want to update
+                            const botComment = comments.find(comment => { var _a; return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.includes(base64Context); });
+                            // Format the current date
                             const options = [
                                 { day: 'numeric' },
                                 { month: 'short' },
                                 { year: 'numeric' },
                                 { timeStyle: 'medium' }
                             ];
-                            core.debug('Leaving comment on PR');
-                            yield octokit.rest.issues.createComment({
-                                issue_number: gitHub.context.issue.number,
-                                repo: gitHub.context.issue.repo,
-                                owner: gitHub.context.issue.owner,
-                                body: `
-              **The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
-  
-              | Name | Preview | Updated (UTC) |
-              | :--- | :------ | :------ |
-              | **${appName}** | [Visit Preview](${this.url.replace('captain', appName)}) | ${join(new Date(), options, ' ')} |
-              `
-                            });
+                            const formattedDate = join(new Date(), options, ' ');
+                            const baseComment = `
+            [tmtv-caprover]: ${base64Context}
+            **The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
+            
+            | Name | Preview | Updated (UTC) |
+            | :--- | :------ | :------ |
+              `;
+                            // New comment body
+                            let newCommentBody = (botComment === null || botComment === void 0 ? void 0 : botComment.body) || baseComment;
+                            // Check if app name exists in the table
+                            if (newCommentBody.includes(`| **${appName}** |`)) {
+                                // If it does, replace the corresponding row
+                                const regex = new RegExp(`\\| \\*\\*${appName}\\*\\* \\| \\[Visit Preview\\]\\([^\\)]+\\) \\| .+ \\|`, 'g');
+                                newCommentBody = newCommentBody.replace(regex, `| **${appName}** | [Visit Preview](${this.url.replace('captain', appName)}) | ${formattedDate} |`);
+                            }
+                            else {
+                                // If it doesn't, add a new row to the table
+                                newCommentBody += `
+          | **${appName}** | [Visit Preview](${this.url.replace('captain', appName)}) | ${formattedDate} |`;
+                            }
+                            // If the bot's comment already exists, update it
+                            if (botComment) {
+                                yield octokit.rest.issues.updateComment({
+                                    comment_id: botComment.id,
+                                    owner: gitHub.context.repo.owner,
+                                    repo: gitHub.context.repo.repo,
+                                    body: newCommentBody
+                                });
+                            }
+                            else {
+                                // Otherwise, create a new comment
+                                yield octokit.rest.issues.createComment({
+                                    issue_number: gitHub.context.issue.number,
+                                    repo: gitHub.context.repo.repo,
+                                    owner: gitHub.context.repo.owner,
+                                    body: newCommentBody
+                                });
+                            }
                             core.debug('Comment left on PR');
                         }
                         catch (error) {
@@ -362,7 +398,7 @@ function run() {
             const additionalUpdateSettings = core.getInput('additionalUpdateSettings', {
                 required: false
             });
-            const github_token = (process.env["GITHUB_TOKEN"] || "").trim();
+            const github_token = (process.env['GITHUB_TOKEN'] || '').trim();
             core.info(`Operation: ${operation}`);
             core.info(`Application name: ${appName}`);
             core.info(`Image name: ${imageName}`);
