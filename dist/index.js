@@ -162,7 +162,7 @@ class CapRover {
                         volumes: additionalOptions.volumes || (app === null || app === void 0 ? void 0 : app.volumes),
                         ports: additionalOptions.ports || (app === null || app === void 0 ? void 0 : app.ports),
                         description: additionalOptions.description || (app === null || app === void 0 ? void 0 : app.description),
-                        envVars: envVars !== undefined ? envVars : app === null || app === void 0 ? void 0 : app.envVars
+                        envVars: Object.assign(Object.assign({}, ((app === null || app === void 0 ? void 0 : app.envVars) || {})), (envVars || {}))
                     })
                 });
                 const data = yield response.text();
@@ -245,6 +245,9 @@ class CapRover {
                                 const val = key.startsWith(constant_1.ENV_PREFIX);
                                 if (!val) {
                                     core.info(`excluding env key ${key}`);
+                                }
+                                else {
+                                    core.info(`allowing env key ${key}`);
                                 }
                                 return val;
                             }).map(([key, value]) => ({

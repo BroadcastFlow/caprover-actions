@@ -151,6 +151,7 @@ export class CapRover {
         })}`
       )
       const app = await this.getApp(appName)
+
       const response = await this.fetchWithRetry(
         `${this.url}/api/v2/user/apps/appDefinitions/update`,
         {
@@ -175,7 +176,7 @@ export class CapRover {
             volumes: additionalOptions.volumes || app?.volumes,
             ports: additionalOptions.ports || app?.ports,
             description: additionalOptions.description || app?.description,
-            envVars: envVars !== undefined ? envVars : app?.envVars
+            envVars: {...(app?.envVars || {}), ...(envVars || {})}
           })
         }
       )
@@ -283,6 +284,8 @@ export class CapRover {
                   const val = key.startsWith(ENV_PREFIX)
                   if (!val) {
                     core.info(`excluding env key ${key}`)
+                  } else {
+                    core.info(`allowing env key ${key}`)
                   }
                   return val
                 })
