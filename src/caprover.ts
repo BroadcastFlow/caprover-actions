@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as gitHub from '@actions/github'
 import fetch from 'node-fetch'
+import {ENV_PREFIX} from './constant'
 
 interface CaproverApps {
   appName: string
@@ -219,10 +220,12 @@ export class CapRover {
       if (data?.status === 100 || data?.status === 200) {
         if (this.useEnv === true) {
           const envToUse = this.useEnv
-            ? Object.entries(process.env)?.map(([key, value]) => ({
-                key,
-                value
-              })) || []
+            ? Object.entries(process.env)
+                ?.filter(([key]) => key.startsWith(ENV_PREFIX))
+                .map(([key, value]) => ({
+                  key: key.replace(ENV_PREFIX, ''),
+                  value
+                })) || []
             : []
           await this.updateApp(appName, envToUse)
         }

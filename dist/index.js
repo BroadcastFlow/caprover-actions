@@ -46,6 +46,7 @@ exports.CapRover = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const gitHub = __importStar(__nccwpck_require__(5438));
 const node_fetch_1 = __importDefault(__nccwpck_require__(4429));
+const constant_1 = __nccwpck_require__(2363);
 function join(date, options, separator) {
     function format(option) {
         const formatter = new Intl.DateTimeFormat('en', option);
@@ -211,8 +212,8 @@ class CapRover {
                 if ((data === null || data === void 0 ? void 0 : data.status) === 100 || (data === null || data === void 0 ? void 0 : data.status) === 200) {
                     if (this.useEnv === true) {
                         const envToUse = this.useEnv
-                            ? ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.map(([key, value]) => ({
-                                key,
+                            ? ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.filter(([key]) => key.startsWith(constant_1.ENV_PREFIX)).map(([key, value]) => ({
+                                key: key.replace(constant_1.ENV_PREFIX, ''),
                                 value
                             }))) || []
                             : [];
@@ -383,6 +384,18 @@ exports.CapRover = CapRover;
 
 /***/ }),
 
+/***/ 2363:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ENV_PREFIX = void 0;
+exports.ENV_PREFIX = 'CAPROVER_';
+
+
+/***/ }),
+
 /***/ 4822:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -423,6 +436,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const caprover_1 = __nccwpck_require__(5832);
+const constant_1 = __nccwpck_require__(2363);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -459,7 +473,7 @@ function run() {
                 case 'update':
                     core.info('updating application...');
                     const envToUse = Boolean(useEnv)
-                        ? Object.entries(process.env).map(([key, value]) => ({ key, value }))
+                        ? Object.entries(process.env).filter(([key]) => key.startsWith(constant_1.ENV_PREFIX)).map(([key, value]) => ({ key: key.replace(constant_1.ENV_PREFIX, ''), value }))
                         : undefined;
                     const settings = additionalUpdateSettings
                         ? JSON.parse(additionalUpdateSettings)

@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import {CapRover} from './caprover'
+import {ENV_PREFIX} from './constant'
 
 async function run() {
   try {
@@ -51,7 +52,12 @@ async function run() {
       case 'update':
         core.info('updating application...')
         const envToUse = Boolean(useEnv)
-          ? Object.entries(process.env).map(([key, value]) => ({key, value}))
+          ? Object.entries(process.env)
+              .filter(([key]) => key.startsWith(ENV_PREFIX))
+              .map(([key, value]) => ({
+                key: key.replace(ENV_PREFIX, ''),
+                value
+              }))
           : undefined
         const settings = additionalUpdateSettings
           ? JSON.parse(additionalUpdateSettings)
