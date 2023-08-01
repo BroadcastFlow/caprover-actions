@@ -279,7 +279,13 @@ export class CapRover {
         if (this.useEnv === true) {
           const envToUse = this.useEnv
             ? Object.entries(process.env)
-                ?.filter(([key]) => key.startsWith(ENV_PREFIX))
+                ?.filter(([key]) => {
+                  const val = key.startsWith(ENV_PREFIX)
+                  if (!val) {
+                    core.info(`excluding env key ${key}`)
+                  }
+                  return val
+                })
                 .map(([key, value]) => ({
                   key: key.replace(ENV_PREFIX, ''),
                   value

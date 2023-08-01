@@ -225,9 +225,9 @@ class CapRover {
                                 'x-captain-auth': token,
                                 'x-namespace': 'captain'
                             },
-                            method: "GET"
+                            method: 'GET'
                         });
-                        const responseData = yield response.json();
+                        const responseData = (yield response.json());
                         isAppBuilding = responseData.data.isAppBuilding;
                         isBuildFailed = responseData.data.isBuildFailed;
                         output = responseData;
@@ -241,7 +241,13 @@ class CapRover {
                 if ((data === null || data === void 0 ? void 0 : data.status) === 100 || (data === null || data === void 0 ? void 0 : data.status) === 200) {
                     if (this.useEnv === true) {
                         const envToUse = this.useEnv
-                            ? ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.filter(([key]) => key.startsWith(constant_1.ENV_PREFIX)).map(([key, value]) => ({
+                            ? ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.filter(([key]) => {
+                                const val = key.startsWith(constant_1.ENV_PREFIX);
+                                if (!val) {
+                                    core.info(`excluding env key ${key}`);
+                                }
+                                return val;
+                            }).map(([key, value]) => ({
                                 key: key.replace(constant_1.ENV_PREFIX, ''),
                                 value
                             }))) || []
