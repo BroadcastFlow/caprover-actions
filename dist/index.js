@@ -209,6 +209,7 @@ class CapRover {
                     }
                     catch (error) {
                         core.debug(error.message);
+                        core.debug(`error: ${dataText}`);
                     }
                 }
                 catch (error) {
@@ -227,10 +228,19 @@ class CapRover {
                             },
                             method: 'GET'
                         });
-                        const responseData = (yield response.json());
-                        isAppBuilding = responseData.data.isAppBuilding;
-                        isBuildFailed = responseData.data.isBuildFailed;
-                        output = responseData;
+                        const text = yield response.text();
+                        try {
+                            const responseData = (JSON.parse(text));
+                            isAppBuilding = responseData.data.isAppBuilding;
+                            isBuildFailed = responseData.data.isBuildFailed;
+                            output = responseData;
+                        }
+                        catch (error) {
+                            isAppBuilding = false;
+                            isBuildFailed = false;
+                            output = null;
+                            core.debug(`error double check text: ${text}`);
+                        }
                     }
                     if (isBuildFailed) {
                         core.setFailed(`Failed to deploy application: ${output === null || output === void 0 ? void 0 : output.description}`);

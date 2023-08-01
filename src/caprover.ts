@@ -235,6 +235,7 @@ export class CapRover {
           data = JSON.parse(dataText)
         } catch (error: any) {
           core.debug(error.message)
+          core.debug(`error: ${dataText}`)
         }
       } catch (error) {
         let isAppBuilding = true
@@ -257,12 +258,18 @@ export class CapRover {
               method: 'GET'
             }
           )
-
-          const responseData = (await response.json()) as ResponseData
-
-          isAppBuilding = responseData.data.isAppBuilding
-          isBuildFailed = responseData.data.isBuildFailed
-          output = responseData
+          const text = await response.text()
+          try {
+            const responseData = JSON.parse(text) as ResponseData
+            isAppBuilding = responseData.data.isAppBuilding
+            isBuildFailed = responseData.data.isBuildFailed
+            output = responseData
+          } catch (error) {
+            isAppBuilding = false
+            isBuildFailed = false
+            output = null
+            core.debug(`error double check text: ${text}`)
+          }
         }
 
         if (isBuildFailed) {
