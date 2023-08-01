@@ -85,14 +85,14 @@ export class CapRover {
     }
   }
 
-  async createApp(appName: string) {
+  async createApp(appName: string, hasPersistentData = false) {
     try {
       const token = await this.login(this.password)
       core.info(`Creating application... ${token}`)
       core.info(
         `Creating application with... ${JSON.stringify({
           appName: appName?.toLowerCase(),
-          hasPersistentData: true
+          hasPersistentData
         })}`
       )
       const response = await this.fetchWithRetry(
@@ -169,12 +169,17 @@ export class CapRover {
     }
   }
 
-  async deployApp(appName: string, imageTag: string, imageName?: string) {
+  async deployApp(
+    appName: string,
+    imageTag: string,
+    imageName?: string,
+    hasPersistentData?: boolean
+  ) {
     try {
       const token = await this.login(this.password)
       const app = await this.getApp(appName)
       if (!app) {
-        await this.createApp(appName)
+        await this.createApp(appName, hasPersistentData)
       }
       core.info(`Deploying application... app name: ${appName}`)
       core.info(`Deploying application... with token: ${token}`)

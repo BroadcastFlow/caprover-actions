@@ -103,14 +103,14 @@ class CapRover {
             }
         });
     }
-    createApp(appName) {
+    createApp(appName, hasPersistentData = false) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.login(this.password);
                 core.info(`Creating application... ${token}`);
                 core.info(`Creating application with... ${JSON.stringify({
                     appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
-                    hasPersistentData: true
+                    hasPersistentData
                 })}`);
                 const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appDefinitions/register`, {
                     method: 'POST',
@@ -173,14 +173,14 @@ class CapRover {
             }
         });
     }
-    deployApp(appName, imageTag, imageName) {
+    deployApp(appName, imageTag, imageName, hasPersistentData) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.login(this.password);
                 const app = yield this.getApp(appName);
                 if (!app) {
-                    yield this.createApp(appName);
+                    yield this.createApp(appName, hasPersistentData);
                 }
                 core.info(`Deploying application... app name: ${appName}`);
                 core.info(`Deploying application... with token: ${token}`);
@@ -435,6 +435,9 @@ function run() {
             const operation = core.getInput('operation', { required: true });
             const registry = core.getInput('docker_registry', { required: false });
             const useEnv = core.getInput('useEnv', { required: false });
+            const hasPersistentData = core.getInput('hasPersistentData', {
+                required: false
+            });
             const additionalUpdateSettings = core.getInput('additionalUpdateSettings', {
                 required: false
             });
@@ -447,11 +450,11 @@ function run() {
             switch (operation) {
                 case 'create':
                     core.info('Creating application...');
-                    yield caprover.createApp(appName);
+                    yield caprover.createApp(appName, Boolean(hasPersistentData));
                     break;
                 case 'deploy':
                     core.info('Deploying application...');
-                    yield caprover.deployApp(appName, imageTag, imageName);
+                    yield caprover.deployApp(appName, imageTag, imageName, Boolean(hasPersistentData));
                     break;
                 case 'update':
                     core.info('updating application...');

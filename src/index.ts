@@ -13,6 +13,9 @@ async function run() {
     const operation = core.getInput('operation', {required: true})
     const registry = core.getInput('docker_registry', {required: false})
     const useEnv = core.getInput('useEnv', {required: false})
+    const hasPersistentData = core.getInput('hasPersistentData', {
+      required: false
+    })
     const additionalUpdateSettings = core.getInput('additionalUpdateSettings', {
       required: false
     })
@@ -34,11 +37,16 @@ async function run() {
     switch (operation) {
       case 'create':
         core.info('Creating application...')
-        await caprover.createApp(appName)
+        await caprover.createApp(appName, Boolean(hasPersistentData))
         break
       case 'deploy':
         core.info('Deploying application...')
-        await caprover.deployApp(appName, imageTag, imageName)
+        await caprover.deployApp(
+          appName,
+          imageTag,
+          imageName,
+          Boolean(hasPersistentData)
+        )
         break
       case 'update':
         core.info('updating application...')
