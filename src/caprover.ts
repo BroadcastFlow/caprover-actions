@@ -203,14 +203,15 @@ export class CapRover {
           })
         }
       )
+      const dataText = await response.text()
       let data: any
       try {
-        data = (await response.json()) as Record<string, undefined>
+        data = JSON.parse(dataText)
       } catch (error: any) {
         core.debug(error.message)
       }
 
-      if (data.status === 100 || data.status === 200) {
+      if (data?.status === 100 || data?.status === 200) {
         if (this.useEnv === true) {
           const envToUse = this.useEnv
             ? Object.entries(process.env)?.map(([key, value]) => ({
@@ -321,7 +322,8 @@ export class CapRover {
           }
         }
       } else {
-        core.setFailed(`Failed to deploy application: ${data.description}`)
+        core.setFailed(`Failed to deploy application: ${data?.description}`)
+        core.setFailed(`Request body: ${dataText}`)
       }
     } catch (error: any) {
       core.setFailed(`Failed to deploy application: ${error.message}`)

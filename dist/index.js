@@ -200,14 +200,15 @@ class CapRover {
                         gitHash: ''
                     })
                 });
+                const dataText = yield response.text();
                 let data;
                 try {
-                    data = (yield response.json());
+                    data = JSON.parse(dataText);
                 }
                 catch (error) {
                     core.debug(error.message);
                 }
-                if (data.status === 100 || data.status === 200) {
+                if ((data === null || data === void 0 ? void 0 : data.status) === 100 || (data === null || data === void 0 ? void 0 : data.status) === 200) {
                     if (this.useEnv === true) {
                         const envToUse = this.useEnv
                             ? ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.map(([key, value]) => ({
@@ -296,7 +297,8 @@ class CapRover {
                     }
                 }
                 else {
-                    core.setFailed(`Failed to deploy application: ${data.description}`);
+                    core.setFailed(`Failed to deploy application: ${data === null || data === void 0 ? void 0 : data.description}`);
+                    core.setFailed(`Request body: ${dataText}`);
                 }
             }
             catch (error) {
