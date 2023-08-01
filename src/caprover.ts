@@ -16,6 +16,23 @@ interface CaproverApps {
   envVars: {key: string; value: unknown}[]
 }
 
+interface Log {
+  lines: string[]
+  firstLineNumber: number
+}
+
+interface AppData {
+  isAppBuilding: boolean
+  logs: Log
+  isBuildFailed: boolean
+}
+
+interface ResponseData {
+  status: number
+  description: string
+  data: AppData
+}
+
 function join(date: Date, options: any[], separator: string) {
   function format(option: Intl.DateTimeFormatOptions) {
     const formatter = new Intl.DateTimeFormat('en', option)
@@ -189,32 +206,73 @@ export class CapRover {
           this.registry ? `${this.registry}/` : ''
         }${imageName || appName}:${imageTag}`}`
       )
-      const response = await this.fetchWithRetry(
-        `${this.url}/api/v2/user/apps/appData/${appName}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-captain-auth': token,
-            'x-namespace': 'captain'
-          },
-          body: JSON.stringify({
-            captainDefinitionContent: JSON.stringify({
-              schemaVersion: 2,
-              imageName: `${this.registry ? `${this.registry}/` : ''}${
-                imageName || appName
-              }:${imageTag}`?.toLowerCase()
-            }),
-            gitHash: ''
-          })
-        }
-      )
-      const dataText = await response.text()
       let data: any
       try {
-        data = JSON.parse(dataText)
-      } catch (error: any) {
-        core.debug(error.message)
+        const response = await this.fetchWithRetry(
+          `${this.url}/api/v2/user/apps/appData/${appName}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-captain-auth': token,
+              'x-namespace': 'captain'
+            },
+            body: JSON.stringify({
+              captainDefinitionContent: JSON.stringify({
+                schemaVersion: 2,
+                imageName: `${this.registry ? `${this.registry}/` : ''}${
+                  imageName || appName
+                }:${imageTag}`?.toLowerCase()
+              }),
+              gitHash: ''
+            })
+          }
+        )
+        const dataText = await response.text()
+
+        try {
+          data = JSON.parse(dataText)
+        } catch (error: any) {
+          core.debug(error.message)
+        }
+      } catch (error) {
+        let isAppBuilding = true
+        let isBuildFailed = false
+        let output: ResponseData | null = null
+
+        while (isAppBuilding && !isBuildFailed) {
+          // Pause for a few seconds
+          await new Promise(resolve => setTimeout(resolve, 5000))
+
+          // Check build status
+          const response = await fetch(
+            `${this.url}/api/v2/user/apps/appData/${appName}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-captain-auth': token,
+                'x-namespace': 'captain'
+              },
+              method: 'GET'
+            }
+          )
+
+          const responseData = (await response.json()) as ResponseData
+
+          isAppBuilding = responseData.data.isAppBuilding
+          isBuildFailed = responseData.data.isBuildFailed
+          output = responseData
+        }
+
+        if (isBuildFailed) {
+          core.setFailed(`Failed to deploy application: ${output?.description}`)
+          core.setFailed(`Request body: ${JSON.stringify(output)}`)
+        }
+
+        data = {
+          ...output,
+          status: 200
+        }
       }
 
       if (data?.status === 100 || data?.status === 200) {
@@ -331,7 +389,6 @@ export class CapRover {
         }
       } else {
         core.setFailed(`Failed to deploy application: ${data?.description}`)
-        core.setFailed(`Request body: ${dataText}`)
       }
     } catch (error: any) {
       core.setFailed(`Failed to deploy application: ${error.message}`)

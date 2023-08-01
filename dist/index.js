@@ -186,28 +186,57 @@ class CapRover {
                 core.info(`Deploying application... app name: ${appName}`);
                 core.info(`Deploying application... with token: ${token}`);
                 core.info(`Deploying application... image ${`${this.registry ? `${this.registry}/` : ''}${imageName || appName}:${imageTag}`}`);
-                const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appData/${appName}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-captain-auth': token,
-                        'x-namespace': 'captain'
-                    },
-                    body: JSON.stringify({
-                        captainDefinitionContent: JSON.stringify({
-                            schemaVersion: 2,
-                            imageName: (_a = `${this.registry ? `${this.registry}/` : ''}${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
-                        }),
-                        gitHash: ''
-                    })
-                });
-                const dataText = yield response.text();
                 let data;
                 try {
-                    data = JSON.parse(dataText);
+                    const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appData/${appName}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-captain-auth': token,
+                            'x-namespace': 'captain'
+                        },
+                        body: JSON.stringify({
+                            captainDefinitionContent: JSON.stringify({
+                                schemaVersion: 2,
+                                imageName: (_a = `${this.registry ? `${this.registry}/` : ''}${imageName || appName}:${imageTag}`) === null || _a === void 0 ? void 0 : _a.toLowerCase()
+                            }),
+                            gitHash: ''
+                        })
+                    });
+                    const dataText = yield response.text();
+                    try {
+                        data = JSON.parse(dataText);
+                    }
+                    catch (error) {
+                        core.debug(error.message);
+                    }
                 }
                 catch (error) {
-                    core.debug(error.message);
+                    let isAppBuilding = true;
+                    let isBuildFailed = false;
+                    let output = null;
+                    while (isAppBuilding && !isBuildFailed) {
+                        // Pause for a few seconds
+                        yield new Promise(resolve => setTimeout(resolve, 5000));
+                        // Check build status
+                        const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName}`, {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-captain-auth': token,
+                                'x-namespace': 'captain'
+                            },
+                            method: "GET"
+                        });
+                        const responseData = yield response.json();
+                        isAppBuilding = responseData.data.isAppBuilding;
+                        isBuildFailed = responseData.data.isBuildFailed;
+                        output = responseData;
+                    }
+                    if (isBuildFailed) {
+                        core.setFailed(`Failed to deploy application: ${output === null || output === void 0 ? void 0 : output.description}`);
+                        core.setFailed(`Request body: ${JSON.stringify(output)}`);
+                    }
+                    data = Object.assign(Object.assign({}, output), { status: 200 });
                 }
                 if ((data === null || data === void 0 ? void 0 : data.status) === 100 || (data === null || data === void 0 ? void 0 : data.status) === 200) {
                     if (this.useEnv === true) {
@@ -299,7 +328,6 @@ class CapRover {
                 }
                 else {
                     core.setFailed(`Failed to deploy application: ${data === null || data === void 0 ? void 0 : data.description}`);
-                    core.setFailed(`Request body: ${dataText}`);
                 }
             }
             catch (error) {
@@ -473,7 +501,12 @@ function run() {
                 case 'update':
                     core.info('updating application...');
                     const envToUse = Boolean(useEnv)
-                        ? Object.entries(process.env).filter(([key]) => key.startsWith(constant_1.ENV_PREFIX)).map(([key, value]) => ({ key: key.replace(constant_1.ENV_PREFIX, ''), value }))
+                        ? Object.entries(process.env)
+                            .filter(([key]) => key.startsWith(constant_1.ENV_PREFIX))
+                            .map(([key, value]) => ({
+                            key: key.replace(constant_1.ENV_PREFIX, ''),
+                            value
+                        }))
                         : undefined;
                     const settings = additionalUpdateSettings
                         ? JSON.parse(additionalUpdateSettings)
