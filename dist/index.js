@@ -68,7 +68,7 @@ class CapRover {
                     return yield (0, node_fetch_1.default)(url, options);
                 }
                 catch (err) {
-                    if (err.message === 'CapRover is busy') {
+                    if (err.message.includes('Another operation still in progress')) {
                         core.info('CapRover is busy, waiting to retry...');
                         yield new Promise(resolve => setTimeout(resolve, backoff));
                         // Exponential backoff

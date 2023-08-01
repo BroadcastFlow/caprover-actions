@@ -53,7 +53,7 @@ export class CapRover {
       try {
         return await fetch(url, options)
       } catch (err: any) {
-        if (err.message === 'CapRover is busy') {
+        if (err.message.includes('Another operation still in progress')) {
           core.info('CapRover is busy, waiting to retry...')
           await new Promise(resolve => setTimeout(resolve, backoff))
           // Exponential backoff
