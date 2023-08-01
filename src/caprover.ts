@@ -43,10 +43,34 @@ export class CapRover {
     this.useEnv = useEnv
   }
 
+  private async fetchWithRetry(
+    url: string,
+    options: any,
+    retries: number = 15,
+    backoff: number = 300
+  ) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fetch(url, options)
+      } catch (err: any) {
+        if (err.message === 'CapRover is busy') {
+          core.info('CapRover is busy, waiting to retry...')
+          await new Promise(resolve => setTimeout(resolve, backoff))
+          // Exponential backoff
+          backoff *= 2
+        } else {
+          // If it's another error, we throw it
+          throw err
+        }
+      }
+    }
+    throw new Error('Max retries reached for fetch')
+  }
+
   private async login(password: string): Promise<string> {
     try {
       core.info('Attempting to log in...')
-      const response = await fetch(`${this.url}/api/v2/login`, {
+      const response = await this.fetchWithRetry(`${this.url}/api/v2/login`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'x-namespace': 'captain'},
         body: JSON.stringify({password: password})
@@ -71,7 +95,7 @@ export class CapRover {
           hasPersistentData: true
         })}`
       )
-      const response = await fetch(
+      const response = await this.fetchWithRetry(
         `${this.url}/api/v2/user/apps/appDefinitions/register`,
         {
           method: 'POST',
@@ -109,7 +133,7 @@ export class CapRover {
         })}`
       )
       const app = await this.getApp(appName)
-      const response = await fetch(
+      const response = await this.fetchWithRetry(
         `${this.url}/api/v2/user/apps/appDefinitions/update`,
         {
           method: 'POST',
@@ -159,7 +183,7 @@ export class CapRover {
           this.registry ? `${this.registry}/` : ''
         }${imageName || appName}:${imageTag}`}`
       )
-      const response = await fetch(
+      const response = await this.fetchWithRetry(
         `${this.url}/api/v2/user/apps/appData/${appName}`,
         {
           method: 'POST',
@@ -179,16 +203,23 @@ export class CapRover {
           })
         }
       )
-      const data = (await response.json()) as Record<string, undefined>
+      let data: any
+      try {
+        data = (await response.json()) as Record<string, undefined>
+      } catch (error: any) {
+        core.debug(error.message)
+      }
 
       if (data.status === 100 || data.status === 200) {
-        const envToUse = this.useEnv
-          ? Object.entries(process.env)?.map(([key, value]) => ({
-              key,
-              value
-            })) || []
-          : []
-        await this.updateApp(appName, envToUse)
+        if (this.useEnv === true) {
+          const envToUse = this.useEnv
+            ? Object.entries(process.env)?.map(([key, value]) => ({
+                key,
+                value
+              })) || []
+            : []
+          await this.updateApp(appName, envToUse)
+        }
         core.setOutput('response', data)
         core.info(`Application deployed: ${data}`)
         core.debug(`Deployment context: ${gitHub.context.eventName}`)
@@ -317,7 +348,7 @@ export class CapRover {
     try {
       core.info('Fetching list of applications...')
       const token = await this.login(this.password)
-      const response = await fetch(
+      const response = await this.fetchWithRetry(
         `${this.url}/api/v2/user/apps/appDefinitions`,
         {
           method: 'GET',
@@ -345,7 +376,7 @@ export class CapRover {
       const token = await this.login(this.password)
       const app = await this.getApp(appName)
       core.info('Deleting application...')
-      const response = await fetch(
+      const response = await this.fetchWithRetry(
         `${this.url}/api/v2/user/apps/appDefinitions/delete`,
         {
           method: 'POST',

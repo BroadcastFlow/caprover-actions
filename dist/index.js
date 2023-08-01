@@ -61,11 +61,33 @@ class CapRover {
         this.githubToken = githubToken;
         this.useEnv = useEnv;
     }
+    fetchWithRetry(url, options, retries = 15, backoff = 300) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return yield (0, node_fetch_1.default)(url, options);
+                }
+                catch (err) {
+                    if (err.message === 'CapRover is busy') {
+                        core.info('CapRover is busy, waiting to retry...');
+                        yield new Promise(resolve => setTimeout(resolve, backoff));
+                        // Exponential backoff
+                        backoff *= 2;
+                    }
+                    else {
+                        // If it's another error, we throw it
+                        throw err;
+                    }
+                }
+            }
+            throw new Error('Max retries reached for fetch');
+        });
+    }
     login(password) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 core.info('Attempting to log in...');
-                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/login`, {
+                const response = yield this.fetchWithRetry(`${this.url}/api/v2/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'x-namespace': 'captain' },
                     body: JSON.stringify({ password: password })
@@ -90,7 +112,7 @@ class CapRover {
                     appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
                     hasPersistentData: true
                 })}`);
-                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/register`, {
+                const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appDefinitions/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -121,7 +143,7 @@ class CapRover {
                     hasPersistentData: true
                 })}`);
                 const app = yield this.getApp(appName);
-                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/update`, {
+                const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appDefinitions/update`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -163,7 +185,7 @@ class CapRover {
                 core.info(`Deploying application... app name: ${appName}`);
                 core.info(`Deploying application... with token: ${token}`);
                 core.info(`Deploying application... image ${`${this.registry ? `${this.registry}/` : ''}${imageName || appName}:${imageTag}`}`);
-                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName}`, {
+                const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appData/${appName}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -178,12 +200,23 @@ class CapRover {
                         gitHash: ''
                     })
                 });
-                const data = (yield response.json());
+                let data;
+                try {
+                    data = (yield response.json());
+                }
+                catch (error) {
+                    core.debug(error.message);
+                }
                 if (data.status === 100 || data.status === 200) {
-                    const envToUse = this.useEnv ?
-                        ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.map(([key, value]) => ({ key, value }))) ||
-                            [] : [];
-                    yield this.updateApp(appName, envToUse);
+                    if (this.useEnv === true) {
+                        const envToUse = this.useEnv
+                            ? ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.map(([key, value]) => ({
+                                key,
+                                value
+                            }))) || []
+                            : [];
+                        yield this.updateApp(appName, envToUse);
+                    }
                     core.setOutput('response', data);
                     core.info(`Application deployed: ${data}`);
                     core.debug(`Deployment context: ${gitHub.context.eventName}`);
@@ -295,7 +328,7 @@ class CapRover {
             try {
                 core.info('Fetching list of applications...');
                 const token = yield this.login(this.password);
-                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions`, {
+                const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appDefinitions`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -321,7 +354,7 @@ class CapRover {
                 const token = yield this.login(this.password);
                 const app = yield this.getApp(appName);
                 core.info('Deleting application...');
-                const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appDefinitions/delete`, {
+                const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appDefinitions/delete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
