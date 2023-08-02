@@ -69,7 +69,14 @@ export class CapRover {
   ) {
     for (let i = 0; i < retries; i++) {
       try {
-        return await fetch(url, options)
+        return await fetch(url, options).then(async res => {
+          const cloneRes = res.clone()
+          const textResult = await cloneRes.text()
+          if (textResult.includes('Another operation still in progress')) {
+            throw new Error(textResult)
+          }
+          return res
+        })
       } catch (err: any) {
         if (err.message.includes('Another operation still in progress')) {
           core.info('CapRover is busy, waiting to retry...')
