@@ -236,6 +236,7 @@ export class CapRover {
         } catch (error: any) {
           core.debug(error.message)
           core.debug(`error: ${dataText}`)
+          throw error
         }
       } catch (error) {
         let isAppBuilding = true
@@ -348,12 +349,12 @@ export class CapRover {
             const formattedDate = join(new Date(), options, ' ')
 
             const baseComment = `
-            [tmtv-caprover]: ${base64Context}
-            **The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
-            
-            | Name | Preview | Updated (UTC) |
-            | :--- | :------ | :------ |
-              `
+[tmtv-caprover]: ${base64Context}
+**The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
+
+| Name | Preview | Updated (UTC) |
+| :--- | :------ | :------ |
+  `
             // New comment body
             let newCommentBody = botComment?.body || baseComment
 
@@ -404,10 +405,10 @@ export class CapRover {
           }
         }
       } else {
-        core.setFailed(`Failed to deploy application: ${data?.description}`)
+        core.setFailed(`Failed to deploy application: ${JSON.stringify(data)}`)
       }
     } catch (error: any) {
-      core.setFailed(`Failed to deploy application: ${error.message}`)
+      core.setFailed(`Failed to deploy application: ${JSON.stringify(error)}`)
     }
   }
 

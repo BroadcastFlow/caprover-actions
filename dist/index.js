@@ -210,6 +210,7 @@ class CapRover {
                     catch (error) {
                         core.debug(error.message);
                         core.debug(`error: ${dataText}`);
+                        throw error;
                     }
                 }
                 catch (error) {
@@ -230,7 +231,7 @@ class CapRover {
                         });
                         const text = yield response.text();
                         try {
-                            const responseData = (JSON.parse(text));
+                            const responseData = JSON.parse(text);
                             isAppBuilding = responseData.data.isAppBuilding;
                             isBuildFailed = responseData.data.isBuildFailed;
                             output = responseData;
@@ -301,12 +302,12 @@ class CapRover {
                             ];
                             const formattedDate = join(new Date(), options, ' ');
                             const baseComment = `
-            [tmtv-caprover]: ${base64Context}
-            **The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
-            
-            | Name | Preview | Updated (UTC) |
-            | :--- | :------ | :------ |
-              `;
+[tmtv-caprover]: ${base64Context}
+**The latest updates on your projects**. Brought to you by [Three Media Caprover github action](https://three-media.tv/)
+
+| Name | Preview | Updated (UTC) |
+| :--- | :------ | :------ |
+  `;
                             // New comment body
                             let newCommentBody = (botComment === null || botComment === void 0 ? void 0 : botComment.body) || baseComment;
                             // Check if app name exists in the table
@@ -346,11 +347,11 @@ class CapRover {
                     }
                 }
                 else {
-                    core.setFailed(`Failed to deploy application: ${data === null || data === void 0 ? void 0 : data.description}`);
+                    core.setFailed(`Failed to deploy application: ${JSON.stringify(data)}`);
                 }
             }
             catch (error) {
-                core.setFailed(`Failed to deploy application: ${error.message}`);
+                core.setFailed(`Failed to deploy application: ${JSON.stringify(error)}`);
             }
         });
     }
