@@ -152,6 +152,24 @@ export class CapRover {
       )
       const app = await this.getApp(appName)
 
+      const bodyData = {
+        appName: appName,
+        instanceCount: additionalOptions.instanceCount || app?.instanceCount,
+        captainDefinitionRelativeFilePath:
+          additionalOptions.captainDefinitionRelativeFilePath ||
+          app?.captainDefinitionRelativeFilePath,
+        notExposeAsWebApp:
+          additionalOptions.notExposeAsWebApp || app?.notExposeAsWebApp,
+        forceSsl: additionalOptions.forceSsl || app?.forceSsl,
+        websocketSupport:
+          additionalOptions.websocketSupport || app?.websocketSupport,
+        volumes: additionalOptions.volumes || app?.volumes,
+        ports: additionalOptions.ports || app?.ports,
+        description: additionalOptions.description || app?.description,
+        envVars: {...(app?.envVars || {}), ...(envVars || {})}
+      }
+      core.debug('updating environment')
+      core.debug(JSON.stringify(bodyData))
       const response = await this.fetchWithRetry(
         `${this.url}/api/v2/user/apps/appDefinitions/update`,
         {
@@ -161,23 +179,7 @@ export class CapRover {
             'x-captain-auth': token,
             'x-namespace': 'captain'
           },
-          body: JSON.stringify({
-            appName: appName,
-            instanceCount:
-              additionalOptions.instanceCount || app?.instanceCount,
-            captainDefinitionRelativeFilePath:
-              additionalOptions.captainDefinitionRelativeFilePath ||
-              app?.captainDefinitionRelativeFilePath,
-            notExposeAsWebApp:
-              additionalOptions.notExposeAsWebApp || app?.notExposeAsWebApp,
-            forceSsl: additionalOptions.forceSsl || app?.forceSsl,
-            websocketSupport:
-              additionalOptions.websocketSupport || app?.websocketSupport,
-            volumes: additionalOptions.volumes || app?.volumes,
-            ports: additionalOptions.ports || app?.ports,
-            description: additionalOptions.description || app?.description,
-            envVars: {...(app?.envVars || {}), ...(envVars || {})}
-          })
+          body: JSON.stringify(bodyData)
         }
       )
       const data = await response.text()

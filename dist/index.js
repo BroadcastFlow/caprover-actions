@@ -144,6 +144,21 @@ class CapRover {
                     hasPersistentData: true
                 })}`);
                 const app = yield this.getApp(appName);
+                const bodyData = {
+                    appName: appName,
+                    instanceCount: additionalOptions.instanceCount || (app === null || app === void 0 ? void 0 : app.instanceCount),
+                    captainDefinitionRelativeFilePath: additionalOptions.captainDefinitionRelativeFilePath ||
+                        (app === null || app === void 0 ? void 0 : app.captainDefinitionRelativeFilePath),
+                    notExposeAsWebApp: additionalOptions.notExposeAsWebApp || (app === null || app === void 0 ? void 0 : app.notExposeAsWebApp),
+                    forceSsl: additionalOptions.forceSsl || (app === null || app === void 0 ? void 0 : app.forceSsl),
+                    websocketSupport: additionalOptions.websocketSupport || (app === null || app === void 0 ? void 0 : app.websocketSupport),
+                    volumes: additionalOptions.volumes || (app === null || app === void 0 ? void 0 : app.volumes),
+                    ports: additionalOptions.ports || (app === null || app === void 0 ? void 0 : app.ports),
+                    description: additionalOptions.description || (app === null || app === void 0 ? void 0 : app.description),
+                    envVars: Object.assign(Object.assign({}, ((app === null || app === void 0 ? void 0 : app.envVars) || {})), (envVars || {}))
+                };
+                core.debug("updating environment");
+                core.debug(JSON.stringify(bodyData));
                 const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appDefinitions/update`, {
                     method: 'POST',
                     headers: {
@@ -151,19 +166,7 @@ class CapRover {
                         'x-captain-auth': token,
                         'x-namespace': 'captain'
                     },
-                    body: JSON.stringify({
-                        appName: appName,
-                        instanceCount: additionalOptions.instanceCount || (app === null || app === void 0 ? void 0 : app.instanceCount),
-                        captainDefinitionRelativeFilePath: additionalOptions.captainDefinitionRelativeFilePath ||
-                            (app === null || app === void 0 ? void 0 : app.captainDefinitionRelativeFilePath),
-                        notExposeAsWebApp: additionalOptions.notExposeAsWebApp || (app === null || app === void 0 ? void 0 : app.notExposeAsWebApp),
-                        forceSsl: additionalOptions.forceSsl || (app === null || app === void 0 ? void 0 : app.forceSsl),
-                        websocketSupport: additionalOptions.websocketSupport || (app === null || app === void 0 ? void 0 : app.websocketSupport),
-                        volumes: additionalOptions.volumes || (app === null || app === void 0 ? void 0 : app.volumes),
-                        ports: additionalOptions.ports || (app === null || app === void 0 ? void 0 : app.ports),
-                        description: additionalOptions.description || (app === null || app === void 0 ? void 0 : app.description),
-                        envVars: Object.assign(Object.assign({}, ((app === null || app === void 0 ? void 0 : app.envVars) || {})), (envVars || {}))
-                    })
+                    body: JSON.stringify(bodyData)
                 });
                 const data = yield response.text();
                 core.setOutput('response', data);
