@@ -157,7 +157,7 @@ class CapRover {
                     description: additionalOptions.description || (app === null || app === void 0 ? void 0 : app.description),
                     envVars: Object.assign(Object.assign({}, ((app === null || app === void 0 ? void 0 : app.envVars) || {})), (envVars || {}))
                 };
-                core.debug("updating environment");
+                core.debug('updating environment');
                 core.debug(JSON.stringify(bodyData));
                 const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appDefinitions/update`, {
                     method: 'POST',
@@ -255,7 +255,7 @@ class CapRover {
                 if ((data === null || data === void 0 ? void 0 : data.status) === 100 || (data === null || data === void 0 ? void 0 : data.status) === 200) {
                     if (this.useEnv === true) {
                         const envToUse = this.useEnv
-                            ? ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.filter(([key]) => {
+                            ? ((_b = Object.entries(process.env)) === null || _b === void 0 ? void 0 : _b.filter(([key, value]) => {
                                 const val = key.startsWith(constant_1.ENV_PREFIX);
                                 if (!val) {
                                     core.info(`excluding env key ${key}`);
@@ -391,8 +391,6 @@ class CapRover {
                     }
                 });
                 const data = (yield response.json());
-                core.setOutput('response', data);
-                core.info('List of applications fetched');
                 return data.data;
             }
             catch (error) {

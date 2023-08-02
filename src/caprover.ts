@@ -290,7 +290,7 @@ export class CapRover {
         if (this.useEnv === true) {
           const envToUse = this.useEnv
             ? Object.entries(process.env)
-                ?.filter(([key]) => {
+                ?.filter(([key, value]) => {
                   const val = key.startsWith(ENV_PREFIX)
                   if (!val) {
                     core.info(`excluding env key ${key}`)
@@ -448,8 +448,6 @@ export class CapRover {
       const data = (await response.json()) as {
         data: {appDefinitions: CaproverApps[]}
       }
-      core.setOutput('response', data)
-      core.info('List of applications fetched')
       return data.data
     } catch (error: any) {
       core.setFailed(`Failed to fetch list: ${error.message}`)
