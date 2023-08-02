@@ -136,6 +136,7 @@ class CapRover {
         });
     }
     updateApp(appName, envVars = null, additionalOptions = {}, hasPersistentData = false) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.login(this.password);
@@ -145,6 +146,7 @@ class CapRover {
                     hasPersistentData: hasPersistentData
                 })}`);
                 const app = yield this.getApp(appName === null || appName === void 0 ? void 0 : appName.toLowerCase());
+                const envKeys = (envVars === null || envVars === void 0 ? void 0 : envVars.map(v => v.key)) || [];
                 const bodyData = {
                     appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
                     instanceCount: additionalOptions.instanceCount || (app === null || app === void 0 ? void 0 : app.instanceCount),
@@ -156,7 +158,7 @@ class CapRover {
                     volumes: additionalOptions.volumes || (app === null || app === void 0 ? void 0 : app.volumes),
                     ports: additionalOptions.ports || (app === null || app === void 0 ? void 0 : app.ports),
                     description: additionalOptions.description || (app === null || app === void 0 ? void 0 : app.description),
-                    envVars: [...((app === null || app === void 0 ? void 0 : app.envVars) || []), ...(envVars || [])]
+                    envVars: [...(_a = ((app === null || app === void 0 ? void 0 : app.envVars) || [])) === null || _a === void 0 ? void 0 : _a.filter(v => !envKeys.includes(v.key)), ...(envVars || [])]
                 };
                 core.debug('updating environment');
                 core.debug(JSON.stringify(bodyData));

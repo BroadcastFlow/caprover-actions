@@ -154,6 +154,7 @@ export class CapRover {
       )
       const app = await this.getApp(appName?.toLowerCase())
 
+      const envKeys = envVars?.map(v => v.key) || []
       const bodyData = {
         appName: appName?.toLowerCase(),
         instanceCount: additionalOptions.instanceCount || app?.instanceCount,
@@ -168,7 +169,10 @@ export class CapRover {
         volumes: additionalOptions.volumes || app?.volumes,
         ports: additionalOptions.ports || app?.ports,
         description: additionalOptions.description || app?.description,
-        envVars: [...(app?.envVars || []), ...(envVars || [])]
+        envVars: [
+          ...(app?.envVars || [])?.filter(v => !envKeys.includes(v.key)),
+          ...(envVars || [])
+        ]
       }
       core.debug('updating environment')
       core.debug(JSON.stringify(bodyData))
