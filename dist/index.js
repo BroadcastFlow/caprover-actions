@@ -123,7 +123,7 @@ class CapRover {
                     },
                     body: JSON.stringify({
                         appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
-                        hasPersistentData: true
+                        hasPersistentData
                     })
                 });
                 const data = yield response.text();
@@ -135,14 +135,14 @@ class CapRover {
             }
         });
     }
-    updateApp(appName, envVars = null, additionalOptions = {}) {
+    updateApp(appName, envVars = null, additionalOptions = {}, hasPersistentData = false) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.login(this.password);
                 core.info(`updating application... ${token}`);
                 core.info(`updating application with... ${JSON.stringify({
                     appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
-                    hasPersistentData: true
+                    hasPersistentData: hasPersistentData
                 })}`);
                 const app = yield this.getApp(appName === null || appName === void 0 ? void 0 : appName.toLowerCase());
                 const bodyData = {

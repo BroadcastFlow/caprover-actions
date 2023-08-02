@@ -26,6 +26,9 @@ inputs:
   additionalUpdateSettings:
     description: 'Caprover app settings excluding name and envs as a JSON string'
     required: false
+  hasPersistentData:
+    description: 'When creating an app with hasPersistentData this needs to be set'
+    required: false
 runs:
   using: 'node16'
   main: 'dist/index.js'

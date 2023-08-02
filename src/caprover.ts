@@ -125,7 +125,7 @@ export class CapRover {
           },
           body: JSON.stringify({
             appName: appName?.toLowerCase(),
-            hasPersistentData: true
+            hasPersistentData
           })
         }
       )
@@ -140,7 +140,8 @@ export class CapRover {
   async updateApp(
     appName: string,
     envVars: CaproverApps['envVars'] | null = null,
-    additionalOptions: Record<string, unknown> = {}
+    additionalOptions: Record<string, unknown> = {},
+    hasPersistentData = false
   ) {
     try {
       const token = await this.login(this.password)
@@ -148,7 +149,7 @@ export class CapRover {
       core.info(
         `updating application with... ${JSON.stringify({
           appName: appName?.toLowerCase(),
-          hasPersistentData: true
+          hasPersistentData: hasPersistentData
         })}`
       )
       const app = await this.getApp(appName?.toLowerCase())
