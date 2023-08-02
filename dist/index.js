@@ -70,12 +70,14 @@ class CapRover {
                         const cloneRes = res.clone();
                         const textResult = yield cloneRes.text();
                         if (textResult.includes('Another operation still in progress')) {
+                            core.info(textResult);
                             throw new Error(textResult);
                         }
                         return res;
                     }));
                 }
                 catch (err) {
+                    core.debug(`err: ${JSON.stringify(err)}`);
                     if (err.message.includes('Another operation still in progress')) {
                         core.info('CapRover is busy, waiting to retry...');
                         yield new Promise(resolve => setTimeout(resolve, backoff));
@@ -150,9 +152,9 @@ class CapRover {
                     appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
                     hasPersistentData: true
                 })}`);
-                const app = yield this.getApp(appName);
+                const app = yield this.getApp(appName === null || appName === void 0 ? void 0 : appName.toLowerCase());
                 const bodyData = {
-                    appName: appName,
+                    appName: appName === null || appName === void 0 ? void 0 : appName.toLowerCase(),
                     instanceCount: additionalOptions.instanceCount || (app === null || app === void 0 ? void 0 : app.instanceCount),
                     captainDefinitionRelativeFilePath: additionalOptions.captainDefinitionRelativeFilePath ||
                         (app === null || app === void 0 ? void 0 : app.captainDefinitionRelativeFilePath),
@@ -189,16 +191,16 @@ class CapRover {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = yield this.login(this.password);
-                const app = yield this.getApp(appName);
+                const app = yield this.getApp(appName === null || appName === void 0 ? void 0 : appName.toLowerCase());
                 if (!app) {
-                    yield this.createApp(appName, hasPersistentData);
+                    yield this.createApp(appName === null || appName === void 0 ? void 0 : appName.toLowerCase(), hasPersistentData);
                 }
                 core.info(`Deploying application... app name: ${appName}`);
                 core.info(`Deploying application... with token: ${token}`);
                 core.info(`Deploying application... image ${`${this.registry ? `${this.registry}/` : ''}${imageName || appName}:${imageTag}`}`);
                 let data;
                 try {
-                    const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appData/${appName}`, {
+                    const response = yield this.fetchWithRetry(`${this.url}/api/v2/user/apps/appData/${appName === null || appName === void 0 ? void 0 : appName.toLowerCase()}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -231,7 +233,7 @@ class CapRover {
                         // Pause for a few seconds
                         yield new Promise(resolve => setTimeout(resolve, 5000));
                         // Check build status
-                        const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName}`, {
+                        const response = yield (0, node_fetch_1.default)(`${this.url}/api/v2/user/apps/appData/${appName === null || appName === void 0 ? void 0 : appName.toLowerCase()}`, {
                             headers: {
                                 'Content-Type': 'application/json',
                                 'x-captain-auth': token,
@@ -376,6 +378,7 @@ class CapRover {
                     return null;
                 }
                 core.info('Application fetched');
+                core.debug(JSON.stringify(app));
                 return app;
             }
             catch (error) {

@@ -73,11 +73,13 @@ export class CapRover {
           const cloneRes = res.clone()
           const textResult = await cloneRes.text()
           if (textResult.includes('Another operation still in progress')) {
+            core.info(textResult)
             throw new Error(textResult)
           }
           return res
         })
       } catch (err: any) {
+        core.debug(`err: ${JSON.stringify(err)}`)
         if (err.message.includes('Another operation still in progress')) {
           core.info('CapRover is busy, waiting to retry...')
           await new Promise(resolve => setTimeout(resolve, backoff))
@@ -157,10 +159,10 @@ export class CapRover {
           hasPersistentData: true
         })}`
       )
-      const app = await this.getApp(appName)
+      const app = await this.getApp(appName?.toLowerCase())
 
       const bodyData = {
-        appName: appName,
+        appName: appName?.toLowerCase(),
         instanceCount: additionalOptions.instanceCount || app?.instanceCount,
         captainDefinitionRelativeFilePath:
           additionalOptions.captainDefinitionRelativeFilePath ||
@@ -205,9 +207,9 @@ export class CapRover {
   ) {
     try {
       const token = await this.login(this.password)
-      const app = await this.getApp(appName)
+      const app = await this.getApp(appName?.toLowerCase())
       if (!app) {
-        await this.createApp(appName, hasPersistentData)
+        await this.createApp(appName?.toLowerCase(), hasPersistentData)
       }
       core.info(`Deploying application... app name: ${appName}`)
       core.info(`Deploying application... with token: ${token}`)
@@ -219,7 +221,7 @@ export class CapRover {
       let data: any
       try {
         const response = await this.fetchWithRetry(
-          `${this.url}/api/v2/user/apps/appData/${appName}`,
+          `${this.url}/api/v2/user/apps/appData/${appName?.toLowerCase()}`,
           {
             method: 'POST',
             headers: {
@@ -258,7 +260,7 @@ export class CapRover {
 
           // Check build status
           const response = await fetch(
-            `${this.url}/api/v2/user/apps/appData/${appName}`,
+            `${this.url}/api/v2/user/apps/appData/${appName?.toLowerCase()}`,
             {
               headers: {
                 'Content-Type': 'application/json',
@@ -430,6 +432,7 @@ export class CapRover {
         return null
       }
       core.info('Application fetched')
+      core.debug(JSON.stringify(app))
       return app
     } catch (error: any) {
       core.setFailed(`Failed to fetch app: ${error.message}`)
