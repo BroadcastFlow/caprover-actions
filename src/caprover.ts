@@ -69,15 +69,7 @@ export class CapRover {
   ) {
     for (let i = 0; i < retries; i++) {
       try {
-        return await fetch(url, options).then(async res => {
-          const cloneRes = res.clone()
-          const textResult = await cloneRes.text()
-          if (textResult.includes('Another operation still in progress')) {
-            core.info(textResult)
-            throw new Error(textResult)
-          }
-          return res
-        })
+        return await fetch(url, options)
       } catch (err: any) {
         core.debug(`err: ${JSON.stringify(err)}`)
         if (err.message.includes('Another operation still in progress')) {
@@ -86,7 +78,7 @@ export class CapRover {
           // Exponential backoff
           backoff *= 2
         } else {
-          // If it's another error, we throw it
+          core.debug(`err: ${JSON.stringify(err)}`)
           throw err
         }
       }

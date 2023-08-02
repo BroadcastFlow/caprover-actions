@@ -66,15 +66,7 @@ class CapRover {
         return __awaiter(this, void 0, void 0, function* () {
             for (let i = 0; i < retries; i++) {
                 try {
-                    return yield (0, node_fetch_1.default)(url, options).then((res) => __awaiter(this, void 0, void 0, function* () {
-                        const cloneRes = res.clone();
-                        const textResult = yield cloneRes.text();
-                        if (textResult.includes('Another operation still in progress')) {
-                            core.info(textResult);
-                            throw new Error(textResult);
-                        }
-                        return res;
-                    }));
+                    return yield (0, node_fetch_1.default)(url, options);
                 }
                 catch (err) {
                     core.debug(`err: ${JSON.stringify(err)}`);
@@ -85,7 +77,7 @@ class CapRover {
                         backoff *= 2;
                     }
                     else {
-                        // If it's another error, we throw it
+                        core.debug(`err: ${JSON.stringify(err)}`);
                         throw err;
                     }
                 }
